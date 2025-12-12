@@ -1,9 +1,9 @@
 package com.example.myteam.controller;
 
 import com.example.myteam.command.DashboardSummaryVO;
-import com.example.myteam.command.ProjectSummaryDTO;
-import com.example.myteam.service.DashboardService;
-import com.example.myteam.service.UserService; // 사용자 ID 조회를 위해 필요할 수 있음
+import com.example.myteam.command.ProjectSummaryVO;
+import com.example.myteam.user.DashboardService;
+import com.example.myteam.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -44,9 +44,9 @@ public class DashboardController {
 
     // GET /api/dashboard/projects (프로젝트 목록 및 진척도)
     @GetMapping("/projects")
-    public ResponseEntity<List<ProjectSummaryDTO>> getProjects() {
+    public ResponseEntity<List<ProjectSummaryVO>> getProjects() {
         Long userId = getCurrentUserId();
-        List<ProjectSummaryDTO> projects = dashboardService.getProjectSummaries(userId);
+        List<ProjectSummaryVO> projects = dashboardService.getProjectSummaries(userId);
         return ResponseEntity.ok(projects);
     }
 }

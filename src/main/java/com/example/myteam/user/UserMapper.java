@@ -1,10 +1,12 @@
 package com.example.myteam.user;
 
 import com.example.myteam.command.UserVO;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Optional;
 
+@Mapper
 public interface UserMapper {
     void insertUser(UserVO user);
     Optional<UserVO> findByUsername(@Param("username") String username);

@@ -1,7 +1,11 @@
 package com.example.myteam.command;
 
-import java.time.LocalDate;
+import lombok.Data;
 
+import java.time.LocalDate;
+import java.util.List;
+
+@Data
 public class ProjectSummaryVO {
     private Long projectId;
     private String title;
@@ -11,4 +15,7 @@ public class ProjectSummaryVO {
     private String managerName;
     private int totalTasks;
     private int completedTasks;
+    private int progressRate;
+    private String status;
+    private List<String> coWorkerNames;
 }
