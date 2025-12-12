@@ -9,10 +9,15 @@
 
 <API Info>
 
-
+<< API 정리 >>
 <img width="1200" height="653" alt="image" src="https://github.com/user-attachments/assets/463b7c27-640b-4b84-8cea-4c21b50bec68" />
 
+<< UseCase >>
+<img width="1059" height="584" alt="image" src="https://github.com/user-attachments/assets/16565f9f-f386-4e2b-9d95-b94c64d80851" />
 
+
+<< DB ERD DModeling >>
+<img width="1046" height="779" alt="image" src="https://github.com/user-attachments/assets/244cdfdd-74bd-4063-9a09-125e8fd57e7d" />
 
 
 
