@@ -1,12 +1,41 @@
 팀프로젝트#3 
 
 2025/12/11 Start
-
+2025/12/12 UseCase / DB ERD Modeling / API 정리 
 
 
 
 
 <API Info>
+
+로그인 API				
+대주제	소주제	API 	METHOD	비고
+로그인/인증	회원가입	/register	POST	비밀번호는 서버에서 BCrypt 암호화
+	로그인	/login	POST	성공 시 JWT 토큰 발급
+	로그아웃	/logout	POST	JWT 무효화 (또는 클라이언트 토큰 삭제)
+				
+메인화면 API				
+대주제	소주제	API 	METHOD	비고
+메인화면	대시보드	/summery	GET	JWT 인증 필수
+	프로젝트 목록조회	/projects	GET	진척도(%) 포함, JWT 인증 
+				
+글쓰기 API				
+대주제	소주제	API 	METHOD	비고
+프로젝트 생성	프로젝트 생성	/api/projects/{id}	GET	프로젝트 생성
+	프로젝트 생성	/api/projects/{id}	POST	프로젝트 생성
+	팀원 초대	/api/projects/{id}/{members}	POST	협업자 초대기능
+				
+상세페이지 API				
+대주제	소주제	API 	METHOD	비고
+프로젝트 상세 정보	프로젝트 상세 정보 조회	/detail/{projectId} 	GET	제목, 내용, 진척도, 첨부 파일 목록 등 상세 데이터 반환
+	프로젝트 수정	/detail/{projectId} 	POST	프로젝트 데이터 수정
+	프로젝트 삭제	/detail/{projectId} 	POST	프로젝트 데이터 삭제
+협업자 메신저 기능	메신저 시작	/detail/{projectId}/websocket?room={}&token={}	afterConnectionEstablished	해당 프로젝트 채팅방 참가
+	메신저 종료	/detail/{projectId}/websocket?room={}&token={}	afterConnectionClosed	해당 프로젝트 채팅방 종료
+	메시지 전송 (실시간)	/detail/{projectId}/websocket?room={}&token={}	broadcastMessage	해당 프로젝트 채팅방의 참가자들에게 메시지를 송신
+	메시지 수신 (실시간)	/detail/{projectId}/websocket?room={}&token={}	handleTextMessage	해당 프로젝트 채팅방의 참가자들에게 메시지를 수신
+<img width="1200" height="653" alt="image" src="https://github.com/user-attachments/assets/463b7c27-640b-4b84-8cea-4c21b50bec68" />
+
 
 
 
