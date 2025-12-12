@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myteam.mapper.UserMapper">
+
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO USER (USERNAME, PASSWORD_HASH, DISPLAY_NAME, CREATED_AT, UPDATED_AT)
+        VALUES (#{username}, #{passwordHash}, #{displayName}, NOW(), NOW())
+    </insert>
+
+    <select id="findByUsername" resultType="com.example.myteam.command.UserVO">
+        SELECT USER_ID, USERNAME, PASSWORD_HASH, DISPLAY_NAME, CREATED_AT, UPDATED_AT
+        FROM USER
+        WHERE USERNAME = #{username}
+    </select>
+
+    <select id="existsByUsername" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM USER WHERE USERNAME = #{username}
+    </select>
+
+</mapper>
