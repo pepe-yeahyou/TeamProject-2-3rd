@@ -1,12 +1,17 @@
 팀프로젝트#3 
 
-2025/12/11 Start
+2025/12/11 Start 
 
+2025/12/12 UseCase / DB ERD Modeling / API 정리 
 
 
 
 
 <API Info>
+
+
+<img width="1200" height="653" alt="image" src="https://github.com/user-attachments/assets/463b7c27-640b-4b84-8cea-4c21b50bec68" />
+
 
 
 
