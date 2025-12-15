@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>새 프로젝트 생성</title>
+    <link rel="stylesheet" href="/css/create-project.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 class="title">새 프로젝트 생성</h1>
+        <p class="subtitle">회원 검색으로 팀원을 초대하고 업무를 배정하세요</p>
+    </div>
+
+    <div class="form-card">
+        <form id="projectForm">
+            <!-- 프로젝트 기본 정보 -->
+            <div class="form-group">
+                <label class="form-label" for="projectName">
+                    프로젝트 이름
+                </label>
+                <input
+                        type="text"
+                        id="projectName"
+                        class="form-input"
+                        placeholder="프로젝트 이름"
+                        required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="projectDescription">
+                    프로젝트 설명
+                </label>
+                <textarea
+                        id="projectDescription"
+                        class="form-textarea"
+                        placeholder="프로젝트 설명"
+                ></textarea>
+            </div>
+
+            <div class="date-row">
+                <div class="date-group">
+                    <label class="form-label" for="startDate">
+                        시작일
+                    </label>
+                    <input
+                            type="date"
+                            id="startDate"
+                            class="date-input"
+                            required
+                    >
+                </div>
+
+                <div class="date-group">
+                    <label class="form-label" for="endDate">
+                        마감일
+                    </label>
+                    <input
+                            type="date"
+                            id="endDate"
+                            class="date-input"
+                            required
+                    >
+                </div>
+            </div>
+
+            <!-- 팀원 검색 섹션 -->
+            <div class="form-group">
+                <label class="form-label">
+                    팀원 검색 및 선택
+                    <span class="selected-count" id="selectedCount">선택됨: 0명</span>
+                </label>
+                <div class="team-search">
+                    <p class="search-info">
+                        이미 가입된 회원을 검색하여 팀원으로 초대하세요.
+                    </p>
+
+                    <div class="search-row">
+                        <input
+                                type="text"
+                                id="searchQuery"
+                                class="search-input"
+                                placeholder="이름 또는 이메일로 검색"
+                        >
+                        <button type="button" class="search-btn" id="searchBtn">
+                            검색
+                        </button>
+                    </div>
+
+                    <div class="team-list" id="teamList">
+                        <!-- 검색 결과가 여기에 표시됩니다 -->
+                        <div class="search-placeholder">
+                            검색어를 입력하여 회원을 찾아보세요.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="selected-members-container">
+                    <strong class="selected-label">선택된 팀원:</strong>
+                    <div id="selectedMembersList" class="selected-members-list">
+                        나 (프로젝트 생성자, 팀장)
+                    </div>
+                </div>
+            </div>
+
+            <!-- 업무 배정 섹션 -->
+            <div class="form-group">
+                <div class="task-header">
+                    <label class="form-label">
+                        초기 업무 배정
+                    </label>
+                    <button type="button" class="add-task-btn-small" id="addTaskBtn" title="업무 추가">
+                        추가
+                    </button>
+                </div>
+                <div class="task-assignment">
+                    <p class="task-info">
+                        업무를 추가하고 선택된 팀원에게 배정하세요.
+                    </p>
+
+                    <div class="task-list" id="taskList">
+                        <!-- 업무 1 -->
+                        <div class="task-row">
+                            <input type="text" class="task-input" placeholder="업무 제목" value="프로젝트 기획 회의">
+                            <select class="assignee-select">
+                                <option value="me" selected>나 (팀장)</option>
+                            </select>
+                            <button type="button" class="delete-btn">✕</button>
+                        </div>
+                        <!-- 업무 2 -->
+                        <div class="task-row">
+                            <input type="text" class="task-input" placeholder="업무 제목" value="요구사항 분석">
+                            <select class="assignee-select">
+                                <option value="me" selected>나 (팀장)</option>
+                            </select>
+                            <button type="button" class="delete-btn">✕</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                프로젝트 생성 및 초대 발송
+            </button>
+
+            <a href="/" class="btn btn-secondary">
+                돌아가기
+            </a>
+        </form>
+    </div>
+
+    <a href="/" class="back-link">메인 페이지로 이동</a>
+</div>
+
+<script src="/js/create-project.js"></script>
+</body>
+</html>
