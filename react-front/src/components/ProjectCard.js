@@ -37,7 +37,7 @@ function ProjectCard({ project }) {
     };
 
     return (
-        <div className="project-card" onClick={handleCardClick} style={{cusrsor: 'pointer'}}>
+        <div className="project-card" onClick={handleCardClick} style={{cursor: 'pointer'}}>
             <div className="card-header">
                 <h3 className="card-title">{title}</h3>
                 <span className="status-badge" style={{ backgroundColor: statusColor }}>
