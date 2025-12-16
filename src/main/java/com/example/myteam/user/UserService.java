@@ -14,4 +14,7 @@ public interface UserService {
 
     // 3. 사용자 ID 조회
     Long getUserIdByUsername(String username);
+
+    // 4. 사용자 이름 조회
+    String getNameByUserName(String username);
 }

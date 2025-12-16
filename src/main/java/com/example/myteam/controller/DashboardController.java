@@ -49,4 +49,18 @@ public class DashboardController {
         List<ProjectSummaryVO> projects = dashboardService.getProjectSummaries(userId);
         return ResponseEntity.ok(projects);
     }
+
+    @GetMapping("username")
+    public ResponseEntity<String> getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+        String userName = userService.getNameByUserName(username);
+
+        if (userName == null) {
+            return ResponseEntity.ok("사용자");
+        }
+
+        return ResponseEntity.ok(userName);
+    }
 }

@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import '../styles/Dashboard.css';
 
 function DashboardPage() {
+    const [userName, setUserName] = useState("사용자");
     const [summary, setSummary] = useState(null);
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,6 +22,10 @@ function DashboardPage() {
                 // 2. 프로젝트 목록 (List<ProjectSummaryVO>) 로딩
                 const projectsRes = await api.get('/dashboard/projects');
                 setProjects(projectsRes.data);
+
+                // 3. 사용자 이름 로딩
+                const nameRes = await api.get('/dashboard/username');
+                setUserName(nameRes.data || "사용자");
 
             } catch (err) {
                 setError("데이터를 로드하는 중 오류가 발생했습니다.");
@@ -41,7 +46,7 @@ function DashboardPage() {
 
     return (
         <div className="dashboard-layout">
-            <Header userName={displayName} /> 
+            <Header userName={userName} /> 
             <SummaryCards summary={summary} /> 
             <ProjectList projects={projects} /> 
         </div>

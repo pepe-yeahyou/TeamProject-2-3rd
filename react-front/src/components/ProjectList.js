@@ -7,7 +7,6 @@ function ProjectList({ projects }) {
         return (
             <div className="no-project-container">
                 <p>아직 참여하고 있는 프로젝트가 없습니다.</p>
-                <button className="new-project-button">새 프로젝트 생성</button>
             </div>
         );
     }

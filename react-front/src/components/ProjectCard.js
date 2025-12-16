@@ -1,7 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function ProjectCard({ project }) {
+
+    const navigate = useNavigate();
+
     const {
+        projectId,
         title,
         description,
         progressRate,
@@ -11,6 +16,11 @@ function ProjectCard({ project }) {
         startDate,
         endDate
     } = project;
+
+    // 카드를 클릭했을 때 상세 페이지로 이동
+    const handleCardClick = () => {
+        navigate(`/project/${projectId}`)
+    }
 
     // GlobalStyles의 변수 사용
     const progressColor = status === '완료' ? 'var(--color-status-completed)' : 'var(--color-accent-blue)';
@@ -27,7 +37,7 @@ function ProjectCard({ project }) {
     };
 
     return (
-        <div className="project-card">
+        <div className="project-card" onClick={handleCardClick} style={{cusrsor: 'pointer'}}>
             <div className="card-header">
                 <h3 className="card-title">{title}</h3>
                 <span className="status-badge" style={{ backgroundColor: statusColor }}>

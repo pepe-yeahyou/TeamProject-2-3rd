@@ -50,4 +50,16 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("사용자 ID를 찾을 수 없습니다."))
                 .getUserId();
     }
+
+    @Override
+    public String getNameByUserName(String username) {
+        UserVO user = userMapper.findByUsername(username)
+                .orElse(null);
+
+        if (user != null) {
+            return user.getDisplayName();
+        } else {
+            return null;
+        }
+    }
 }

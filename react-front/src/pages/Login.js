@@ -34,7 +34,7 @@ function Login() {
 
         } catch (err) {
             // 8. 로그인 실패 처리
-            const errorMessage = err.response?.data?.displayName || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.";
+            const errorMessage = err.response?.data?.displayName || "아이디 또는 비밀번호를 다시 확인해 주세요.";
             setError(errorMessage);
             console.error('로그인 오류:', err);
         }
