@@ -2,16 +2,17 @@ package com.example.myteam.service;
 
 import com.example.myteam.repository.DetailRepository;
 import com.example.myteam.repository.TaskRepository;
+import com.example.myteam.repository.FileRepository;
 import com.example.myteam.command.DetailVO;
 import com.example.myteam.command.MemberVO;
 import com.example.myteam.command.TaskVO;
 import com.example.myteam.command.UpdateVO;
+import com.example.myteam.command.FileVO;
 import com.example.myteam.entity.Project;
 import com.example.myteam.entity.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 
 import java.util.List;
@@ -23,11 +24,15 @@ public class DetailServiceImpl implements DetailService {
 
     private final DetailRepository detailRepository;
     private final TaskRepository taskRepository;
+    private final FileRepository fileRepository;
 
     @Autowired
-    public DetailServiceImpl(DetailRepository detailRepository, TaskRepository taskRepository) {
+    public DetailServiceImpl(DetailRepository detailRepository,
+                             TaskRepository taskRepository,
+                             FileRepository fileRepository) { // 💡 2. 생성자 주입
         this.detailRepository = detailRepository;
         this.taskRepository = taskRepository;
+        this.fileRepository = fileRepository;
     }
 
 
@@ -40,7 +45,7 @@ public class DetailServiceImpl implements DetailService {
             throw new RuntimeException("Project not found.");
         }
 
-        Project project = optionalProject.get(); // Optional에서 Project 객체 추출
+        Project project = optionalProject.get();
 
         Long ownerId = project.getOwner().getUserId();
         String managerName = project.getOwner().getDisplayName();
@@ -67,6 +72,18 @@ public class DetailServiceImpl implements DetailService {
                         .build())
                 .collect(Collectors.toList());
 
+        List<FileVO> attachedFiles = fileRepository.findByProject_ProjectId(projectId).stream()
+                .map(fileEntity -> FileVO.builder()
+                        .fileId(fileEntity.getFileId())
+                        .fileName(fileEntity.getFileName())
+                        .storagePath(fileEntity.getStoragePath())
+                        // FileEntity의 uploader 필드가 User 엔티티라고 가정
+                        .uploaderUserId(fileEntity.getUploader().getUserId())
+                        .uploadedAt(fileEntity.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+
         return DetailVO.builder()
                 .projectId(project.getProjectId())
                 .title(project.getProjectTitle())
@@ -80,6 +97,7 @@ public class DetailServiceImpl implements DetailService {
                 .managerName(managerName)
                 .coWorkers(coWorkers)
                 .workList(workList)
+                .attachedFiles(attachedFiles)
                 .build();
     }
 
@@ -162,5 +180,17 @@ public class DetailServiceImpl implements DetailService {
         task.setStatus(newStatus);
 
         taskRepository.save(task);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<FileVO> getFileInfoById(Long fileId) {
+        return fileRepository.findByFileId(fileId)
+                .map(fileEntity -> FileVO.builder()
+                        .fileId(fileEntity.getFileId())
+                        .fileName(fileEntity.getFileName())
+                        .storagePath(fileEntity.getStoragePath())
+                        .uploaderUserId(fileEntity.getUploader().getUserId())
+                        .uploadedAt(fileEntity.getCreatedAt())
+                        .build());
     }
 }

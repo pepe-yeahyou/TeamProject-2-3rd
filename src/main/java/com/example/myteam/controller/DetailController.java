@@ -3,9 +3,21 @@ package com.example.myteam.controller;
 import com.example.myteam.service.DetailService;
 import com.example.myteam.command.DetailVO; // ProjectDetailVO -> DetailVO
 import com.example.myteam.command.UpdateVO; // ProjectUpdateRequest -> UpdateVO
+import com.example.myteam.command.FileVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.Resource; // 💡 Resource import
+import org.springframework.core.io.UrlResource; // 💡 UrlResource import
+import org.springframework.http.HttpHeaders; // 💡 HttpHeaders import
+import org.springframework.http.HttpStatus; // 💡 HttpStatus import
+import org.springframework.http.MediaType; // 💡 MediaType import
+import org.springframework.web.server.ResponseStatusException; // 💡 ResponseStatusException import
+
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/detail")
@@ -13,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class DetailController {
 
     private final DetailService detailService;
+    private final Path fileStorageLocation = Paths.get("./uploads").toAbsolutePath().normalize();
 
     @Autowired
     public DetailController(DetailService detailService) {
@@ -98,5 +111,39 @@ public class DetailController {
         // 이 HTTP 엔드포인트는 클라이언트에게 WebSocket 연결 경로를 안내하거나,
         // 권한 체크 후 실제 WS 연결은 Spring의 WebSocketConfig/Handler가 처리합니다.
         return ResponseEntity.ok("Initiating WebSocket connection for project " + projectId);
+    }
+
+    @GetMapping("/files/{fileId}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
+
+        // 1. Service를 통해 파일 정보 (DB 데이터) 조회
+        Optional<FileVO> optionalFileInfo = detailService.getFileInfoById(fileId);
+
+        FileVO fileInfo = optionalFileInfo.orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File ID " + fileId + " not found in database.")
+        );
+
+        try {
+            // 2. 파일 시스템에서 파일을 Resource 형태로 로드
+            Path filePath = this.fileStorageLocation.resolve(fileInfo.getStoragePath()).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                // 저장소에 파일이 없거나 읽을 수 없는 경우
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found on server storage: " + fileInfo.getFileName());
+            }
+
+            // 3. HTTP 응답 헤더 설정 (다운로드 파일명 설정)
+            String fileName = fileInfo.getFileName();
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+
+        } catch (MalformedURLException e) {
+            // 파일 경로가 유효하지 않은 경우
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "File path error.");
+        }
     }
 }

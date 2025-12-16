@@ -1,9 +1,9 @@
-// src/component/Detail.js
+// src/component/Detail.js (전체 코드)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Chat from './Chat';
-import { useParams, useNavigate } from 'react-router-dom'; 
+import { useParams, useNavigate } from 'react-router-dom';
 import '../css/Detail.css';
 
 // 백엔드 API 기본 경로
@@ -16,15 +16,15 @@ const calculateProgress = (workList) => {
     const totalTasks = workList.length;
     const completedTasks = workList.filter(task => task.status === 'COMPLETED').length;
     
-    return totalTasks === 0 
-        ? 0 
+    return totalTasks === 0
+        ? 0
         : Math.round((completedTasks / totalTasks) * 100);
 };
 
 
 // ---------------------- Detail 컴포넌트 본체 ----------------------
 
-function Detail() { 
+function Detail() {
     const { projectId } = useParams();
     const navigate = useNavigate();
     
@@ -39,9 +39,7 @@ function Detail() {
 
     
     // 💡 [안전 장치 포함] project가 null이 아닐 때만 데이터 접근
-    // 이 부분은 컴포넌트 상단에서 정의되지만, 실제 값은 비동기 로딩 후 두 번째 렌더링에서 확정됩니다.
-    const coWorkers = project?.coWorkers || []; 
-    // 🚨 핵심: project가 있을 때만 managerId 접근. (이전 오류 해결)
+    const coWorkers = project?.coWorkers || [];
     const isProjectManager = project && project.ownerId === currentUser.userId;
     const isCoWorker = coWorkers.some(worker => worker.userId === currentUser.userId);
     
@@ -56,8 +54,27 @@ function Detail() {
         try {
             setLoading(true);
             const response = await axios.get(`${API_BASE_URL}/${projectId}`);
-            setProject(response.data);
+            
+            let loadedProjectData = response.data;
             setError(null);
+
+            // ==========================================================
+            // 💡 [테스트용: 더미 파일 목록 주입 로직]
+            // 백엔드에서 파일 데이터가 없을 경우에만 프론트엔드에서 강제로 생성
+            if (!loadedProjectData.attachedFiles || loadedProjectData.attachedFiles.length === 0) {
+                 loadedProjectData = {
+                     ...loadedProjectData,
+                     // 파일 다운로드 링크 테스트를 위해 fileId를 임시로 부여
+                     attachedFiles: [
+                         { fileId: 9991, fileName: `기획서_v1_${projectId}.pdf` },
+                         { fileId: 9992, fileName: `디자인_시안.zip` },
+                         { fileId: 9993, fileName: `업로드된_파일이_많다는_가정.docx` }
+                     ]
+                 };
+            }
+            // ==========================================================
+
+            setProject(loadedProjectData); // 수정된 데이터를 상태에 저장
         } catch (err) {
             setError('프로젝트 정보를 불러오는 데 실패했습니다.');
             console.error(err);
@@ -91,10 +108,8 @@ function Detail() {
      * 💡 프로젝트 수정 버튼 핸들러 (Write 페이지로 이동)
      */
     const handleEditClick = () => {
-        // hasEditPermission 변수는 비동기 로드 후 계산되므로, 여기서는 project가 null인지 다시 확인
         if (!project || !hasEditPermission) return alert('프로젝트 수정 권한이 없거나 데이터 로딩 중입니다.');
         
-        // /write 페이지로 이동하면서, 현재 project 데이터를 state로 전달
         navigate('/write', { 
             state: { 
                 projectData: project,
@@ -110,11 +125,9 @@ function Detail() {
         if (!hasEditPermission) return alert('프로젝트 삭제 권한이 없습니다.');
         if (!window.confirm('프로젝트를 삭제하시겠습니까?')) return;
         try {
-            // API: POST /detail/{projectId}?operation=DELETE (DELETE를 POST로 처리)
             await axios.post(`${API_BASE_URL}/${projectId}?operation=DELETE`); 
             
             alert('프로젝트가 성공적으로 삭제되었습니다.');
-            // 삭제 후 메인 페이지로 이동
             navigate('/'); 
         } catch (err) {
             alert('프로젝트 삭제에 실패했습니다. 권한을 확인하세요.');
@@ -173,6 +186,8 @@ function Detail() {
             console.log(`백엔드 데이터 project.ownerId: ${project.ownerId}`);
             console.log(`최종 권한 isProjectManager: ${project.ownerId === currentUser.userId}`);
             console.log(`버튼 표시 여부 hasEditPermission: ${hasEditPermission}`);
+            // 💡 파일 목록이 콘솔에 출력되어야 합니다.
+            console.log(`첨부 파일 목록: `, project.attachedFiles);
             console.log('------------------------------');
         }
     }, [project, currentUser.userId, hasEditPermission]);
@@ -182,11 +197,9 @@ function Detail() {
 
     if (loading) return <div>로딩 중...</div>;
     if (error) return <div>오류: {error}</div>;
-    // 💡 [필수] project가 null일 경우 이 시점에서 렌더링 중단
     if (!project) return <div>프로젝트를 찾을 수 없습니다.</div>; 
 
 
-    // 이 시점에서는 project가 존재하므로 안전하게 접근 가능
     const calculatedProgress = calculateProgress(project.workList || []); 
     const projectStatus = calculatedProgress === 100 ? '완료' : '진행중';
 
@@ -232,12 +245,38 @@ function Detail() {
                         ></div>
                     </div>
                 </div>
+                
+                {/* ========================================================== */}
+                {/* 💡 7. 첨부 파일 섹션 추가 (파일 목록 조회 및 다운로드 UI) */}
+                <div className="detail-card file-section">
+                    <h3>첨부 파일</h3>
+                    <ul className="file-list">
+                        {/* attachedFiles 필드가 존재하고 1개 이상일 때 목록 렌더링 */}
+                        {(project.attachedFiles && project.attachedFiles.length > 0) ? (
+                            project.attachedFiles.map(file => (
+                                <li key={file.fileId}>
+                                    {/* 다운로드 API 엔드포인트에 연결: GET /detail/files/{fileId} */}
+                                    <a 
+                                        href={`${API_BASE_URL}/files/${file.fileId}`} 
+                                    >
+                                        📄 {file.fileName}
+                                    </a>
+                                </li>
+                            ))
+                        ) : (
+                            <li style={{ color: '#aaaaaa', listStyle: 'none' }}>
+                                업로드된 파일이 없습니다.
+                            </li>
+                        )}
+                    </ul>
+                </div>
+                {/* ========================================================== */}
 
                 {/* 6. 작업 목록 (Todo list) 섹션 */}
                 <div className="detail-card task-list">
                     <h3>해야 할 것 (작업 목록)</h3>
                     <ul>
-                        {(project.workList || []).map(task => (    
+                        {(project.workList || []).map(task => (    
                             <li key={task.taskId}>
                                 <button 
                                     className={`round-button ${task.status === 'COMPLETED' ? 'completed' : 'in-progress'}`}
@@ -248,7 +287,6 @@ function Detail() {
                                 </button>
                                 <span style={{ textDecoration: task.status === 'COMPLETED' ? 'line-through' : 'none' }}>
                                     {task.taskName}
-                                    {/* 💡 담당자 정보 추가 (만약 TaskVO에 assignedUserName이 있다면) */}
                                     {task.assignedUserName && (
                                         <div style={{ fontSize: '0.85rem', color: '#7a7a9a' }}>
                                             담당: {task.assignedUserName}
@@ -287,13 +325,10 @@ function Detail() {
                 {projectStatus === '진행중' && (
                     <div className="detail-card chat-section">
                         <h3>채팅</h3>
-                        {/* 💡 Chat 컴포넌트에 CSS 클래스를 적용하거나 내부 Chat.js 파일에 스타일 적용 필요 */}
                         <Chat 
                             projectId={projectId} 
                             currentUser={currentUser} 
                             isChatEnabled={isProjectManager || isCoWorker}
-                            // Chat 컴포넌트가 messages를 받아서 렌더링한다고 가정
-                            // messages={dummyChatMessages} 
                         />
                     </div>
                 )}
