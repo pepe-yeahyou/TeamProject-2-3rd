@@ -1,8 +1,12 @@
-import CreateProject from './pages/CreateProject';
-import './styles/create-project.css';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Detail from './component/Detail';
 
 function App() {
-  return <CreateProject/>;  // 테스트용
-}
+    return (
+        <Routes>
+            <Route path={'/detail/:projectId'} element={<Detail/>}/>
+        </Routes>
+    );
 
 export default App;
