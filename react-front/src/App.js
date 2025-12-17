@@ -8,5 +8,6 @@ function App() {
             <Route path={'/detail/:projectId'} element={<Detail/>}/>
         </Routes>
     );
+}
 
 export default App;
