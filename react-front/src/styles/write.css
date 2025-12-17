@@ -1,7 +1,7 @@
 :root {
     --bg-dark: #162135;
     --main-area: #182337;
-    --border: #27354A;
+    --border: #27354a;
     --card-bg: #1e293b;
     --text-primary: #ffffff;
     --text-secondary: #9ca3af;
@@ -23,6 +23,112 @@ body {
     min-height: 100vh;
 }
 
+/* 네비게이션 바 */
+.navbar {
+    background-color: var(--main-area);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    background-color: rgba(24, 35, 55, 0.95);
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.nav-brand:hover {
+    opacity: 0.9;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background-color: var(--card-bg);
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+}
+
+.user-info:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: var(--blue);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-name {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.user-role {
+    font-size: 12px;
+    color: var(--yellow);
+    font-weight: 500;
+}
+
+.logout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
 .container {
     max-width: 800px;
     margin: 0 auto;
@@ -32,6 +138,7 @@ body {
 .header {
     text-align: center;
     margin-bottom: 40px;
+    margin-top: 20px;
 }
 
 .title {
@@ -257,6 +364,22 @@ body {
     border: 1px solid rgba(59, 130, 246, 0.5);
 }
 
+/* 현재 로그인된 사용자 스타일 */
+.current-user {
+    background-color: #f0f8ff !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.current-user-badge {
+    background-color: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-right: 10px;
+}
+
 .member-info {
     display: flex;
     align-items: center;
@@ -287,9 +410,10 @@ body {
     font-weight: 500;
 }
 
-.member-email {
-    color: var(--text-secondary);
+.member-username {
     font-size: 12px;
+    color: #999;
+    margin-top: 2px;
 }
 
 .selected-count {
@@ -407,17 +531,6 @@ body {
     background-color: #2563eb;
 }
 
-.btn-secondary {
-    background-color: var(--border);
-    color: var(--text-primary);
-    margin-top: 16px;
-    width: 100%;
-}
-
-.btn-secondary:hover {
-    opacity: 0.9;
-}
-
 .back-link {
     display: inline-block;
     color: var(--text-secondary);
@@ -460,6 +573,23 @@ body {
 }
 
 @media (max-width: 768px) {
+    .navbar {
+        padding: 0 15px;
+    }
+
+    .user-info {
+        padding: 6px 12px;
+    }
+
+    .user-details {
+        display: none;
+    }
+
+    .logout-btn {
+        margin-left: 5px;
+        padding: 4px 8px;
+    }
+
     .container {
         padding: 20px;
     }
