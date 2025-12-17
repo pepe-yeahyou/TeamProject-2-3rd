@@ -14,24 +14,24 @@ const CreateProject = () => {
 
     // 상태 관리
     const [projectData, setProjectData] = useState({
-        name: '',
+        projectTitle: '',
         description: '',
         startDate: formatDate(today),
         endDate: formatDate(nextWeek)
     });
 
     const [selectedMembers, setSelectedMembers] = useState(new Map([
-        ['me', {
-            id: 'me',
-            name: '나 (팀장)',
+        [0, {
+            userId: 0,                    // ← userId로 통일
+            displayName: '나 (팀장)',      // ← displayName으로
             email: '현재사용자',
-            isManager: true
+            isLeader: true
         }]
     ]));
 
     const [tasks, setTasks] = useState([
-        { id: 1, title: '프로젝트 기획 회의', assigneeId: 'me' },
-        { id: 2, title: '요구사항 분석', assigneeId: 'me' }
+        { id: 1, taskName: '프로젝트 기획 회의', assigneeId: 0 },
+        { id: 2, taskName: '요구사항 분석', assigneeId: 0 }
     ]);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -40,15 +40,15 @@ const CreateProject = () => {
     const [isSearching, setIsSearching] = useState(false);
 
     // 선택된 멤버 수 계산
-    const selectedMemberCount = Array.from(selectedMembers.keys()).filter(id => id !== 'me').length;
+    const selectedMemberCount = Array.from(selectedMembers.keys()).filter(id => id !== 0).length;
 
     // 더미 사용자 데이터
     const dummyUsers = [
-        { id: 'user1', name: '김철수', email: 'kim@email.com' },
-        { id: 'user2', name: '이영희', email: 'lee@email.com' },
-        { id: 'user3', name: '박지훈', email: 'park@email.com' },
-        { id: 'user4', name: '최수진', email: 'choi@email.com' },
-        { id: 'user5', name: '정민우', email: 'jung@email.com' }
+        { userId: 1, username: 'kim', displayName: '김철수', email: 'kim@email.com' },
+        { userId: 2, username: 'lee', displayName: '이영희', email: 'lee@email.com' },
+        { userId: 3, username: 'park', displayName: '박지훈', email: 'park@email.com' },
+        { userId: 4, username: 'choi', displayName: '최수진', email: 'choi@email.com' },
+        { userId: 5, username: 'jung', displayName: '정민우', email: 'jung@email.com' }
     ];
 
     // 사용자 검색 함수
@@ -62,19 +62,19 @@ const CreateProject = () => {
         
         // 시뮬레이션: API 호출 딜레이
         setTimeout(() => {
-        const results = dummyUsers.filter(user =>
-            user.name.includes(searchQuery) || user.email.includes(searchQuery)
-        );
-        setSearchResults(results);
-        setIsSearching(false);
+            const results = dummyUsers.filter(user =>
+                user.displayName.includes(searchQuery) || user.email.includes(searchQuery)
+            );
+            setSearchResults(results);
+            setIsSearching(false);
         }, 500);
     };
 
     // 엔터키로 검색
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSearch();
+            e.preventDefault();
+            handleSearch();
         }
     };
 
@@ -82,10 +82,10 @@ const CreateProject = () => {
     const toggleMemberSelection = (user) => {
         const newSelectedMembers = new Map(selectedMembers);
         
-        if (newSelectedMembers.has(user.id)) {
-            newSelectedMembers.delete(user.id);
+        if (newSelectedMembers.has(user.userId)) {
+            newSelectedMembers.delete(user.userId);
         } else {
-            newSelectedMembers.set(user.id, user);
+            newSelectedMembers.set(user.userId, user);
         }
         
         setSelectedMembers(newSelectedMembers);
@@ -101,9 +101,9 @@ const CreateProject = () => {
     // 업무 추가
     const addTask = () => {
         const newTask = {
-        id: nextTaskId,
-        title: '',
-        assigneeId: 'me'
+            id: nextTaskId,
+            taskName: '',
+            assigneeId: 0
         };
         
         setTasks([...tasks, newTask]);
@@ -111,16 +111,16 @@ const CreateProject = () => {
     };
 
     // 업무 제목 변경
-    const updateTaskTitle = (taskId, newTitle) => {
+    const updateTaskName = (taskId, newTaskName) => {
         setTasks(tasks.map(task => 
-        task.id === taskId ? { ...task, title: newTitle } : task
+            task.id === taskId ? { ...task, taskName: newTaskName } : task
         ));
     };
 
     // 업무 담당자 변경
     const updateTaskAssignee = (taskId, assigneeId) => {
-        setTasks(tasks.map(task => 
-        task.id === taskId ? { ...task, assigneeId } : task
+            setTasks(tasks.map(task =>
+            task.id === taskId ? { ...task, assigneeId } : task
         ));
     };
 
@@ -134,7 +134,7 @@ const CreateProject = () => {
         e.preventDefault();
 
         // 유효성 검사
-        if (!projectData.name.trim()) {
+        if (!projectData.projectTitle.trim()) {
             alert('프로젝트 이름을 입력해주세요.');
             return;
         }
@@ -146,65 +146,60 @@ const CreateProject = () => {
 
         // 데이터 준비
         const invitedUserIds = Array.from(selectedMembers.keys())
-        .filter(id => id !== 'me');
+            .filter(id => id !== 0);
 
         const initialTasks = tasks
-        .filter(task => task.title.trim())
-        .map(task => ({
-            title: task.title.trim(),
-            assigneeId: task.assigneeId === 'me' ? null : task.assigneeId,
-            assigneeName: task.assigneeId === 'me' 
-            ? '나 (팀장)' 
-            : selectedMembers.get(task.assigneeId)?.name
-        }));
+            .filter(task => task.taskName.trim())
+            .map(task => ({
+                taskName: task.taskName.trim(),
+                assignedUserId: task.assigneeId === 0 ? null : task.assigneeId
+            }));
 
         const projectDataToSend = {
-        name: projectData.name,
-        description: projectData.description,
-        startDate: projectData.startDate,
-        endDate: projectData.endDate,
-        invitedUserIds,
-        initialTasks
+            projectTitle: projectData.projectTitle,
+            description: projectData.description,
+            startDate: projectData.startDate,
+            endDate: projectData.endDate,
+            invitedUserIds,
+            initialTasks
         };
 
         console.log('전송할 데이터:', projectDataToSend);
 
-        // 실제 API 호출 (여기서는 콘솔에만 출력)
-        alert(`프로젝트 생성 준비 완료!\n${invitedUserIds.length}명의 팀원에게 초대가 발송됩니다.`);
-        
-        // 실제 API 호출 코드 (주석 처리됨)
-        /*
+        // API 호출
         try {
-        const response = await fetch('/api/projects', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(projectDataToSend)
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            window.location.href = `/projects/${result.id}`;
-        }
+            const response = await fetch('/api/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(projectDataToSend)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                window.location.href = `/summary`;  // 메인화면(요약 페이지)으로 이동
+                // 또는 프로젝트 상세 페이지로 가고 싶으면: `/projects/${result.projectId}`
+            } else {
+                alert('서버 오류가 발생했습니다.');
+            }
         } catch (error) {
-        console.error('Error:', error);
-        alert('서버 연결에 실패했습니다.');
+            console.error('Error:', error);
+            alert('서버 연결에 실패했습니다.');
         }
-        */
     };
 
     // 담당자 옵션 생성
     const getAssigneeOptions = () => {
-        const options = [{ value: 'me', label: '나 (팀장)' }];
+        const options = [{ value: 0, label: '나 (팀장)' }];
         
         selectedMembers.forEach((member, id) => {
-        if (id !== 'me') {
+        if (id !== 0) {
             options.push({
-            value: id,
-            label: `${member.name} (${member.email})`
-            });
-        }
+                value: id,
+                label: `${member.displayName} (${member.email})`
+                });
+            }
         });
         
         return options;
@@ -215,12 +210,12 @@ const CreateProject = () => {
         const members = [];
         
         selectedMembers.forEach((member, id) => {
-        if (id === 'me') {
+        if (id === 0) {
             members.push(<div key="me">나 (프로젝트 생성자, 팀장)</div>);
         } else {
             members.push(
             <div key={id}>
-                • {member.name} ({member.email})
+                • {member.displayName} rmflr({member.email})
             </div>
             );
         }
@@ -248,8 +243,8 @@ const CreateProject = () => {
                 id="projectName"
                 className="form-input"
                 placeholder="프로젝트 이름"
-                value={projectData.name}
-                onChange={(e) => setProjectData({...projectData, name: e.target.value})}
+                value={projectData.projectTitle}
+                onChange={(e) => setProjectData({...projectData, projectTitle: e.target.value})}
                 required
                 />
             </div>
@@ -336,19 +331,19 @@ const CreateProject = () => {
                     </div>
                     ) : (
                     searchResults.map(user => {
-                        const isSelected = selectedMembers.has(user.id);
+                        const isSelected = selectedMembers.has(user.userId);
                         return (
                         <div 
-                            key={user.id} 
+                            key={user.userId}
                             className={`team-member ${isSelected ? 'selected' : ''}`}
                             onClick={() => toggleMemberSelection(user)}
                         >
                             <div className="member-info">
                             <div className="member-avatar">
-                                {user.name.substring(0, 2)}
+                                {user.displayName.substring(0, 2)}
                             </div>
                             <div className="member-details">
-                                <div className="member-name">{user.name}</div>
+                                <div className="member-name">{user.displayName}</div>
                                 <div className="member-email">{user.email}</div>
                             </div>
                             </div>
@@ -357,8 +352,8 @@ const CreateProject = () => {
                                 type="button" 
                                 className="delete-btn"
                                 onClick={(e) => {
-                                e.stopPropagation();
-                                removeMember(user.id);
+                                    e.stopPropagation();
+                                    removeMember(user.userId);
                                 }}
                             >
                                 ✕
@@ -408,8 +403,8 @@ const CreateProject = () => {
                             type="text"
                             className="task-input"
                             placeholder="업무 제목"
-                            value={task.title}
-                            onChange={(e) => updateTaskTitle(task.id, e.target.value)}
+                            value={task.taskName}
+                            onChange={(e) => updateTaskName(task.id, e.target.value)}
                         />
                         <select
                             className="assignee-select"

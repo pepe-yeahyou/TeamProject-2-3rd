@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProjectVO {
-    private Integer ProjectID;
-    private Integer OwnerID;
-    private String ProjectTitle;
-    private String Description;
-    private LocalDate StartDate;
-    private LocalDate EndDate;
-    private LocalDateTime CreateAt;
-    private LocalDateTime UpdateAt;
+    private Integer projectID;
+    private Integer ownerID;
+    private String projectTitle;
+    private String description;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalDateTime createAt;
+    private LocalDateTime updateAt;
 }
