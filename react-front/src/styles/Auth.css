@@ -1,0 +1,157 @@
+/*
+ * src/styles/Auth.css
+ * 로그인 및 회원가입 페이지 공통 스타일 (최종 확정 버전)
+ */
+
+/* 1. 컨테이너: 전체 배경을 덮고 폼을 중앙에 배치 */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: var(--color-bg-primary); 
+}
+
+/* 2. 로그인/회원가입 박스 (카드) 스타일 */
+.login-box {
+    background-color: var(--color-bg-card);
+    padding: 30px 40px; 
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.title {
+    color: var(--color-text-primary);
+    margin-bottom: 25px; 
+    font-size: 1.8em;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* 3. 입력 필드 그룹 */
+.input-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+/* 회원가입 페이지는 label을 사용하지 않으므로 이 코드는 무시해도 됨 */
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px;
+    background-color: #1a1a2e; /* 입력칸은 배경보다 더 어둡게 */
+    border: 1px solid #4a4a75; /* 상세페이지 보더 색상 */
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.input-group input::placeholder {
+    color: #888;
+}
+
+.input-group input:focus {
+    border-color: #8c7ae6;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(140, 122, 230, 0.2);
+}
+
+/* 4. 버튼 스타일 */
+.primary-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #8c7ae6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px; /* 버튼 상단 간격 확보 */
+    transition: background-color 0.3s;
+}
+
+.primary-button:hover {
+    background-color: #7d65cc;
+}
+
+.primary-button:active {
+    transform: scale(0.98); /* 클릭 시 살짝 눌리는 효과 */
+}
+
+/* 5. 하단 링크 그룹 (줄바꿈 및 간격 오류 최종 수정) */
+.link-group {
+    margin-top: 25px;
+    font-size: 0.9em;
+    color: var(--color-text-secondary);
+
+    display: flex; 
+    justify-content: center;
+    align-items: center; 
+    gap: 4px; 
+    white-space: nowrap; /* 강제로 한 줄에 표시 */
+    line-height: 1.2;
+}
+
+.link-group a {
+    color: #90a0ff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link-group a:hover {
+    text-decoration: underline;
+}
+
+/* 6. 성공/오류 메시지 스타일 */
+.error-message {
+    /* 1. 강제 노출 설정 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    /* 2. 높이 및 간격 (line-height 0.1 방지) */
+    min-height: 20px;
+    line-height: 1.5 !important; 
+    margin: 15px 0 !important;
+    padding: 12px !important;
+    
+    /* 3. 디자인 */
+    color: #ffffff !important;
+    background-color: #ef4444 !important; /* 강렬한 빨간색으로 테스트 */
+    border: 1px solid #ff0000;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    
+    /* 4. 애니메이션은 일단 주석 처리 (사라지는 현상 방지) */
+    /* animation: shake 0.4s ease-in-out; */
+}
+
+/* 흔들림 애니메이션 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.success-message {
+    color: var(--color-status-completed); 
+    background-color: rgba(16, 185, 129, 0.1); 
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}

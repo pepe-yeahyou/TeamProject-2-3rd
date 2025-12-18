@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserVO {
-    private Integer userId;
+    private long userId;
     private String username;
     private String passwordHash;
     private String displayName;
