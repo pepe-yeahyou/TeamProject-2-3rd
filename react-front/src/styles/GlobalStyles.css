@@ -7,15 +7,17 @@
 :root {
     /* 배경 및 카드 색상 (Dark Theme) */
     --color-bg-primary: #1a1a2e;         /* 전체 배경 (매우 어두운 네이비) */
-    --color-bg-card: #1C2538;            /* 카드, 폼 컨테이너 배경 */
+    --color-bg-card: #2c2c44;          /* 카드, 폼 컨테이너 배경 */
     
     /* 텍스트 색상 */
     --color-text-primary: #FFFFFF;       /* 주 텍스트 (흰색) */
-    --color-text-secondary: #CCCCCC;     /* 보조 텍스트 (밝은 회색) */
+    --color-text-secondary: #aaaaaa;     /* 보조 텍스트 (밝은 회색) */
     
     /* 강조 및 버튼 색상 */
-    --color-accent-blue: #3B82F6;        /* 주 강조색 (Primary Blue) */
-    
+    --color-accent-blue: #8c7ae6;        /* 주 강조색 (Primary Blue) */
+    --color-accent-hover: #7d65cc;
+    --color-success: #48a9a6;
+
     /* 상태 및 알림 색상 */
     --color-error: #EF4444;              /* 오류 메시지 (빨간색) */
     --color-status-in-progress: #D97706; /* 대시보드 진행 중 상태 (노란색/갈색) */

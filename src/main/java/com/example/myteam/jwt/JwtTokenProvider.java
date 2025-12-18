@@ -48,7 +48,6 @@ public class JwtTokenProvider {
 
     // 토큰 검증 로직 (JwtAuthenticationFilter에서 사용됨)
     public boolean validateToken(String token) {
-        // ... (유효성 검증 로직은 이전 답변에 제공됨) ...
         return true;
     }
 

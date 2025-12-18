@@ -11,19 +11,17 @@
     min-height: 100vh;
     padding: 20px;
     background-color: var(--color-bg-primary); 
-    
 }
 
 /* 2. 로그인/회원가입 박스 (카드) 스타일 */
 .login-box {
     background-color: var(--color-bg-card);
     padding: 30px 40px; 
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     width: 100%;
     max-width: 400px;
     text-align: center;
-    line-height: 0.1;
 }
 
 .title {
@@ -37,8 +35,7 @@
 /* 3. 입력 필드 그룹 */
 .input-group {
     text-align: left;
-    margin-bottom: 8px;
-    line-height: 0.1;
+    margin-bottom: 15px;
 }
 
 /* 회원가입 페이지는 label을 사용하지 않으므로 이 코드는 무시해도 됨 */
@@ -51,14 +48,13 @@
 
 .input-group input {
     width: 100%;
-    padding: 12px;
-    background-color: var(--color-bg-primary);
-    border: 1px solid #444;
-    border-radius: 6px;
+    padding: 14px;
+    background-color: #1a1a2e; /* 입력칸은 배경보다 더 어둡게 */
+    border: 1px solid #4a4a75; /* 상세페이지 보더 색상 */
+    border-radius: 8px;
     color: var(--color-text-primary);
     transition: border-color 0.3s;
     box-sizing: border-box;
-    margin: 0; 
 }
 
 .input-group input::placeholder {
@@ -66,16 +62,17 @@
 }
 
 .input-group input:focus {
-    border-color: var(--color-accent-blue);
+    border-color: #8c7ae6;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(140, 122, 230, 0.2);
 }
 
 /* 4. 버튼 스타일 */
 .primary-button {
     width: 100%;
     padding: 12px;
-    background-color: var(--color-accent-blue);
-    color: var(--color-text-primary);
+    background-color: #8c7ae6;
+    color: #ffffff;
     border: none;
     border-radius: 6px;
     font-size: 1.1em;
@@ -86,7 +83,11 @@
 }
 
 .primary-button:hover {
-    background-color: #306acf;
+    background-color: #7d65cc;
+}
+
+.primary-button:active {
+    transform: scale(0.98); /* 클릭 시 살짝 눌리는 효과 */
 }
 
 /* 5. 하단 링크 그룹 (줄바꿈 및 간격 오류 최종 수정) */
@@ -104,24 +105,46 @@
 }
 
 .link-group a {
-    color: var(--color-accent-blue);
+    color: #90a0ff;
     font-weight: 600;
-    transition: color 0.3s;
+    text-decoration: none;
 }
 
 .link-group a:hover {
-    color: #60a5fa; 
     text-decoration: underline;
 }
 
 /* 6. 성공/오류 메시지 스타일 */
 .error-message {
-    color: var(--color-error);
-    background-color: rgba(239, 68, 68, 0.1);
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
+    /* 1. 강제 노출 설정 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    /* 2. 높이 및 간격 (line-height 0.1 방지) */
+    min-height: 20px;
+    line-height: 1.5 !important; 
+    margin: 15px 0 !important;
+    padding: 12px !important;
+    
+    /* 3. 디자인 */
+    color: #ffffff !important;
+    background-color: #ef4444 !important; /* 강렬한 빨간색으로 테스트 */
+    border: 1px solid #ff0000;
+    border-radius: 8px;
     font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    
+    /* 4. 애니메이션은 일단 주석 처리 (사라지는 현상 방지) */
+    /* animation: shake 0.4s ease-in-out; */
+}
+
+/* 흔들림 애니메이션 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
 }
 
 .success-message {

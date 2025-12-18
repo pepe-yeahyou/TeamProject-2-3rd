@@ -35,7 +35,7 @@ function Register() {
             });
 
             // 3. 성공 처리
-            setSuccess('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+            setSuccess('회원가입이 완료되었습니다!');
 
             // 3초 후 로그인 페이지로 리디렉션
             setTimeout(() => {
@@ -59,6 +59,18 @@ function Register() {
                 {/* 성공 메시지: 별도의 클래스를 정의하여 초록색으로 표시 */}
                 {success && <p className="success-message">{success}</p>} 
                 
+                {/* 표시 이름 입력 */}
+                <div className="input-group">
+                    <input
+                        type="text"
+                        placeholder="사용자 이름 (대시보드 표시용)"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        required
+                        className="input-field"
+                    />
+                </div>
+
                 {/* 아이디 입력 */}
                 <div className="input-group">
                     <input
@@ -66,18 +78,6 @@ function Register() {
                         placeholder="아이디 (로그인용)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        required
-                        className="input-field"
-                    />
-                </div>
-
-                {/* 표시 이름 입력 */}
-                <div className="input-group">
-                    <input
-                        type="text"
-                        placeholder="사용자 이름 (대시보드 표시용)"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
                         required
                         className="input-field"
                     />

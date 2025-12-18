@@ -12,9 +12,15 @@ function LoginPage() {
     const navigate = useNavigate();
     const { login } = useAuth();
 
+    // 입력값이 변경될 때 호출될 공통 핸들러
+    const handleInputChange = (e, setter) => {
+        // 에러가 있는 상태에서 타이핑을 시작하면 에러 메시지를 숨김
+        if (loginError) setLoginError(null);
+        setter(e.target.value);
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
-        setLoginError(null);
 
         try {
             const response = await api.post('/login', { username, password });
@@ -27,7 +33,7 @@ function LoginPage() {
             navigate('/dashboard'); 
 
         } catch (err) {
-            const errorMessage = err.response?.data?.message || "로그인 중 알 수 없는 오류가 발생했습니다.";
+            const errorMessage = err.response?.data?.message || "아이디 또는 비밀번호가 올바르지 않습니다.";
             setLoginError(errorMessage);
             console.error('Login Failed:', err);
         }
@@ -45,7 +51,7 @@ function LoginPage() {
                         type="text"
                         placeholder="아이디"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => handleInputChange(e, setUsername)}
                         required
                     />
                 </div>
@@ -54,7 +60,7 @@ function LoginPage() {
                         type="password"
                         placeholder="비밀번호"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => handleInputChange(e, setPassword)}
                         required
                     />
                 </div>

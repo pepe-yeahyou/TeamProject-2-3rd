@@ -16,7 +16,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.io.IOException;
-import java.util.ArrayList; // 권한이 없을 경우 빈 리스트를 사용
 import java.util.Collections;
 
 // @Component 대신 SecurityConfig에서 직접 생성하여 주입할 것이므로 @RequiredArgsConstructor만 사용합니다.
