@@ -1,3 +1,4 @@
+import '../styles/Auth.css'
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -16,7 +17,7 @@ function LoginPage() {
         setLoginError(null);
 
         try {
-            const response = await api.post('/auth/login', { username, password });
+            const response = await api.post('/login', { username, password });
             const { token, displayName } = response.data; // AuthController에서 응답받은 데이터
             
             // 전역 상태 업데이트 및 로컬 스토리지에 저장
@@ -33,29 +34,39 @@ function LoginPage() {
     };
 
     return (
-        <div className="login-container">
-            <form onSubmit={handleLogin} className="login-form">
-                <h2>로그인</h2>
+    <div className="auth-container">
+        <div className="login-box"> 
+            <form onSubmit={handleLogin}>
+                <h2 className="title">로그인</h2>
                 {loginError && <p className="error-message">{loginError}</p>}
                 
-                <input
-                    type="text"
-                    placeholder="아이디"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="비밀번호"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button type="submit">로그인</button>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        placeholder="아이디"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="input-group">
+                    <input
+                        type="password"
+                        placeholder="비밀번호"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit" className="primary-button">로그인</button>
             </form>
+            
+            <p className="link-group">
+                <span>계정이 없으신가요?</span> <a href="/register">회원가입</a>
+            </p>
         </div>
-    );
+    </div>
+);
 }
 
 export default LoginPage;

@@ -19,7 +19,7 @@ function ProjectCard({ project }) {
 
     // 카드를 클릭했을 때 상세 페이지로 이동
     const handleCardClick = () => {
-        navigate(`/project/${projectId}`)
+        navigate(`/detail/${projectId}`)
     }
 
     // GlobalStyles의 변수 사용

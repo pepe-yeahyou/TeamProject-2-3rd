@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/dashboard")
 @RequiredArgsConstructor
 public class DashboardController {
 
@@ -29,7 +29,6 @@ public class DashboardController {
         // SecurityContext에 저장된 Username을 가져옴
         String username = authentication.getName();
 
-        // TODO: Username을 이용해 DB에서 UserID를 조회하거나, JWT 파싱 시 ID를 UserDetails에 포함해야 함
         // 현재는 편의상 UserService를 통해 ID를 조회한다고 가정
         return userService.getUserIdByUsername(username);
     }
@@ -50,6 +49,7 @@ public class DashboardController {
         return ResponseEntity.ok(projects);
     }
 
+    // 대시보드에 username 표시
     @GetMapping("username")
     public ResponseEntity<String> getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

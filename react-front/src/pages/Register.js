@@ -28,7 +28,7 @@ function Register() {
 
         try {
             //2. 백엔트 회원가입 API 호출
-            await api.post('/auth/register', {
+            await api.post('/register', {
                 username: username,
                 password: password,
                 displayName: displayName
@@ -43,7 +43,7 @@ function Register() {
             }, 3000);
         } catch (err) {
             //4. 회원가입 실패 처리
-            const errorMessage = err.response?.data?.message || "회원가입에 실패했습니다. 입력 정보를 확인해주세요.";
+            const errorMessage = err.response?.data?.message || "입력 정보를 확인해주세요.";
             setError(errorMessage);
             console.error('회원가입 오류:', err);
         }

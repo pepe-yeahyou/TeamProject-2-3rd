@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8484/api', // Spring Boot 백엔드 주소로 변경
+    baseURL: 'http://localhost:8484', // Spring Boot 백엔드 주소로 변경
     headers: {
         'Content-Type': 'application/json',
     },

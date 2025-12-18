@@ -12,27 +12,27 @@ function Header({ userName, onNewProjectClick }) {
     };
 
     return (
-        <header className="dashboard-header">
-            <h1 className="logo">프로젝트 대시보드</h1>
-            <div className="header-info">
-                <span className="welcome-message">안녕하세요, {userName}님</span>
-                
+    <header className="main-header">
+        <h1 className="logo">프로젝트 대시보드</h1>
+        <div className="header-info">
+            <span className="user-greeting">안녕하세요, {userName}님</span>
+            <div className="header-button-group">
                 <button 
-                    className="btn btn-primary" 
-                    onClick={onNewProjectClick} // Prop으로 전달받은 핸들러 사용
+                    className="new-project-button" 
+                    onClick={onNewProjectClick}
                 >
                     + 새 프로젝트
                 </button>
-                
                 <button 
-                    className="btn btn-secondary" 
-                    onClick={handleLogout} // Context를 이용한 로그아웃
+                    className="logout-button" 
+                    onClick={handleLogout}
                 >
                     로그아웃
                 </button>
             </div>
-        </header>
-    );
+        </div>
+    </header>
+);
 }
 
 export default Header;

@@ -10,9 +10,9 @@ function DashboardPage() {
     const navigate = useNavigate();
     const { summary, projects, userName, loading, error } = useDashboardData();
     
-    // Header에 전달할 새 프로젝트 버튼 핸들러
+    // 새 프로젝트 버튼 핸들러
     const handleNewProjectClick = () => {
-        navigate('/project/register');
+        // navigate(`/api/projects/${userId}`);
     };
 
     if (loading) return <div>로딩 중...</div>; // (선택: 스켈레톤 UI로 대체 가능)

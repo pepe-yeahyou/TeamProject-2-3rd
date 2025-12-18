@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.myteam.jwt.JwtTokenProvider;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class AuthController {
 
