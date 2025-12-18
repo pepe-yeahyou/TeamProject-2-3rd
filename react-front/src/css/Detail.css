@@ -65,6 +65,15 @@ h3 {
     font-size: 1.4rem;
 }
 
+h4 {
+    color: #90a0ff; /* 섹션 제목 강조 */
+    border-bottom: 2px solid #4a4a75;
+    padding-bottom: 8px;
+    margin-top: 0;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
 .title-section .action-buttons {
     margin-top: 10px;
 }
@@ -72,7 +81,7 @@ h3 {
 /* ------------------------------------- */
 /* 2. 상태 및 버튼 스타일 */
 /* ------------------------------------- */
-.status-진행중, .status-완료 {
+.status-진행중, .status-완료{
     padding: 5px 12px;
     border-radius: 8px;
     font-weight: bold;
@@ -89,6 +98,27 @@ h3 {
 .status-완료 {
     background-color: #48a9a6; /* 청록색 계열 */
     color: #ffffff;
+}
+.status-기간만료 {
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    
+    /* 빨간색 계열 배경 */
+    background-color: #ff4d4d; 
+    color: #ffffff;
+    
+    /* 약간의 강조 효과 (선택 사항) */
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.4);
+}
+
+/* 기간 만료 문구 강조 (사이드바 하단) */
+.detail-card.completion-message h4 {
+    color: #ff4d4d; /* 파란색에서 빨간색으로 변경 */
+    border-bottom: 2px solid #5a3c3c;
 }
 
 .action-buttons button {
