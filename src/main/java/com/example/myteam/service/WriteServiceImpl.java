@@ -100,7 +100,6 @@ public class WriteServiceImpl implements WriteService {
             }
         }
 
-        // 6. 초기 작업들 생성
         if (writeVO.getInitialTasks() != null && !writeVO.getInitialTasks().isEmpty()) {
             for (TaskCreateVO taskVO : writeVO.getInitialTasks()) {
                 Task task = new Task();
@@ -112,16 +111,19 @@ public class WriteServiceImpl implements WriteService {
                 task.setCreatedAt(LocalDateTime.now());
                 task.setUpdatedAt(LocalDateTime.now());
 
-                // 담당자 설정 (null일 수 있음)
                 if (taskVO.getAssignedUserId() != null) {
                     User assignedUser = userRepository.findById(Long.valueOf(taskVO.getAssignedUserId()))
                             .orElse(null);
                     task.setAssignedUser(assignedUser);
+                } else {
+                    // assignedUserId가 null이면 팀장에게 배정
+                    task.setAssignedUser(owner);  // owner는 팀장
                 }
 
                 taskRepository.save(task);
             }
         }
+
 
         // 7. 생성된 프로젝트 ID 반환
         return projectId.intValue();
