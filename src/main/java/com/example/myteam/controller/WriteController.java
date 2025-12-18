@@ -75,4 +75,15 @@ public class WriteController {
 
         return ResponseEntity.ok(response);
     }
+
+    // ✅ 새로운 API: 전체 사용자 목록 조회
+    @GetMapping("/users")
+    public ResponseEntity<Map<String, Object>> getAllUsers() {
+        List<UserVO> users = writeService.getAllUsers();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", users);
+
+        return ResponseEntity.ok(response);
+    }
 }

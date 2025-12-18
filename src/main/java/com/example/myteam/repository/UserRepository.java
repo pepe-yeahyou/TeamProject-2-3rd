@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             String displayName,
             String username
     );
+
+    List<User> findAllByOrderByDisplayNameAsc();
 }

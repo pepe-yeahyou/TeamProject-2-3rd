@@ -170,4 +170,21 @@ public class WriteServiceImpl implements WriteService {
 
         return projectVO;
     }
+
+    @Override
+    public List<UserVO> getAllUsers() {
+        // 모든 사용자 조회 (정렬: displayName 기준)
+        List<User> users = userRepository.findAllByOrderByDisplayNameAsc();
+
+        // User 엔티티를 UserVO로 변환
+        return users.stream().map(user -> {
+            UserVO userVO = new UserVO();
+            userVO.setUserId(user.getUserId().intValue());
+            userVO.setUsername(user.getUsername());
+            userVO.setDisplayName(user.getDisplayName());
+            userVO.setCreatedAt(user.getCreatedAt());
+            userVO.setUpdatedAt(user.getUpdatedAt());
+            return userVO;
+        }).collect(Collectors.toList());
+    }
 }
