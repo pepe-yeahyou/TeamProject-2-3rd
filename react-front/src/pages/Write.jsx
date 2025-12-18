@@ -36,8 +36,13 @@ const Write = () => {
     const [tasks, setTasks] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    // ✅ 새로운 상태: 전체 사용자 목록
+    const [allUsers, setAllUsers] = useState([]);
     const [nextTaskId, setNextTaskId] = useState(1);
     const [isSearching, setIsSearching] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    // ✅ 새로운 상태: 전체 사용자 로딩
+    const [isLoadingAllUsers, setIsLoadingAllUsers] = useState(false);
 
     // 컴포넌트 마운트 시 로그인 정보 불러오기
     useEffect(() => {
@@ -63,10 +68,31 @@ const Write = () => {
                 isLeader: true
             });
             setSelectedMembers(newSelectedMembers);
+
+            // ✅ 전체 사용자 목록 불러오기
+            loadAllUsers();
         } else {
             alert('로그인이 필요합니다. 개발자도구 → Application → Local Storage에 로그인 정보를 추가해주세요.');
         }
     }, []);
+
+    // ✅ 전체 사용자 목록 불러오기 함수
+    const loadAllUsers = async () => {
+        setIsLoadingAllUsers(true);
+        try {
+            const response = await fetch('/api/users');
+            if (!response.ok) {
+                throw new Error('전체 사용자 목록 조회 실패');
+            }
+            const data = await response.json();
+            setAllUsers(data.users || []);
+        } catch (error) {
+            console.error('전체 사용자 목록 조회 에러:', error);
+            alert('전체 사용자 목록을 불러오는데 실패했습니다.');
+        } finally {
+            setIsLoadingAllUsers(false);
+        }
+    };
 
     // 선택된 멤버 수 계산 (본인 제외)
     const selectedMemberCount = Array.from(selectedMembers.keys())
@@ -128,6 +154,38 @@ const Write = () => {
         setSelectedMembers(newSelectedMembers);
     };
 
+    // ✅ 셀렉트에서 팀원 선택
+    const handleSelectMember = (e) => {
+        const selectedUserId = parseInt(e.target.value);
+        if (!selectedUserId) return; // "선택해주세요" 옵션 선택 시 무시
+
+        // 본인은 선택 불가
+        if (selectedUserId === currentUser.userId) return;
+
+        // 이미 선택된 멤버인지 확인
+        if (selectedMembers.has(selectedUserId)) {
+            alert('이미 선택된 팀원입니다.');
+            e.target.value = ''; // 셀렉트 초기화
+            return;
+        }
+
+        // 선택된 사용자 찾기
+        const selectedUser = allUsers.find(user => user.userId === selectedUserId);
+        if (!selectedUser) return;
+
+        // 멤버 추가
+        const newSelectedMembers = new Map(selectedMembers);
+        newSelectedMembers.set(selectedUserId, {
+            userId: selectedUserId,
+            displayName: selectedUser.displayName,
+            username: selectedUser.username,
+            isLeader: false
+        });
+
+        setSelectedMembers(newSelectedMembers);
+        e.target.value = ''; // 셀렉트 초기화
+    };
+
     // 팀원 제거
     const removeMember = (userId) => {
         // 본인은 제거 불가
@@ -143,7 +201,7 @@ const Write = () => {
         const newTask = {
             id: nextTaskId,
             taskName: '',
-            assigneeId: currentUser.userId || 0
+            assigneeId: ''
         };
 
         setTasks([...tasks, newTask]);
@@ -173,38 +231,72 @@ const Write = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 로그인 검증
+        // ✅ 이미 생성 중이면 중복 제출 방지
+        if (isCreating) {
+            return;
+        }
+
+        // 1. 로그인 검증
         if (!currentUser.isLoggedIn) {
             alert('로그인이 필요합니다.');
             return;
         }
 
-        // 유효성 검사
+        // 2. 프로젝트 이름 검증
         if (!projectData.projectTitle.trim()) {
             alert('프로젝트 이름을 입력해주세요.');
             return;
         }
 
-        if (new Date(projectData.startDate) > new Date(projectData.endDate)) {
+        // 3. 날짜 검증
+        const startDate = new Date(projectData.startDate);
+        const endDate = new Date(projectData.endDate);
+
+        if (startDate > endDate) {
             alert('시작일은 마감일보다 빨라야 합니다.');
             return;
         }
 
-        // 데이터 준비
+        // 4. 업무 검증 (수정된 부분!)
+        const emptyTasks = tasks.filter(task => !task.taskName.trim());
+
+        if (emptyTasks.length > 0) {
+            alert(`업무 제목이 비어있는 항목이 ${emptyTasks.length}개 있습니다.\n빈 업무를 삭제하거나 제목을 입력해주세요.`);
+            return;
+        }
+
+        // 5. 최소 1개 업무 검증
+        if (tasks.length === 0) {
+            alert('최소 1개 이상의 업무를 추가해주세요.');
+            return;
+        }
+
+        // ✅ 담당자 미선택 업무 확인
+        const unassignedTasks = tasks.filter(task =>
+            task.taskName.trim() && !task.assigneeId
+        );
+
+        if (unassignedTasks.length > 0) {
+            alert(`${unassignedTasks.length}개의 업무에 담당자가 지정되지 않았습니다.\n모든 업무에 담당자를 선택해주세요.`);
+            return;
+        }
+
+        // ✅ 로딩 상태 시작
+        setIsCreating(true);
+
+        // 데이터 준비 (빈 업무 필터링 제거 - 모든 업무 전송)
         const invitedUserIds = Array.from(selectedMembers.keys())
             .filter(id => id !== currentUser.userId);
 
-        const initialTasks = tasks
-            .filter(task => task.taskName.trim())
-            .map(task => ({
-                taskName: task.taskName.trim(),
-                description: '',
-                assignedUserId: task.assigneeId === currentUser.userId ? null : task.assigneeId
-            }));
+        const initialTasks = tasks.map(task => ({
+            taskName: task.taskName.trim(),
+            description: '',
+            assignedUserId: task.assigneeId === currentUser.userId ? null : task.assigneeId
+        }));
 
         const projectDataToSend = {
-            projectTitle: projectData.projectTitle,
-            description: projectData.description,
+            projectTitle: projectData.projectTitle.trim(),
+            description: projectData.description.trim(),
             startDate: projectData.startDate,
             endDate: projectData.endDate,
             invitedUserIds,
@@ -230,18 +322,29 @@ const Write = () => {
             } else {
                 const error = await response.text();
                 alert('서버 오류: ' + error);
+                // ✅ 에러 발생 시 로딩 상태 해제
+                setIsCreating(false);
             }
         } catch (error) {
             console.error('Error:', error);
             alert('서버 연결에 실패했습니다.');
+            // ✅ 에러 발생 시 로딩 상태 해제
+            setIsCreating(false);
         }
+        // ✅ 성공 시에는 navigate로 이동하므로 setIsCreating 호출 불필요
     };
 
     // 담당자 옵션 생성
     const getAssigneeOptions = () => {
         const options = [];
 
-        // 로그인된 본인 추가
+        // 첫 번째 옵션: 선택 요청 메시지 (기본값)
+        options.push({
+            value: '',  // 빈 값
+            label: '배정할 팀원을 선택해주세요'
+        });
+
+        // 두 번째 옵션: 현재 로그인한 사용자 (팀장)
         if (currentUser.userId) {
             options.push({
                 value: currentUser.userId,
@@ -249,12 +352,35 @@ const Write = () => {
             });
         }
 
-        // 선택된 팀원들 추가
+        // 세 번째 이후: 선택된 팀원들
         selectedMembers.forEach((member, id) => {
             if (id !== currentUser.userId) {
                 options.push({
                     value: id,
                     label: `${member.displayName}`
+                });
+            }
+        });
+
+        return options;
+    };
+
+    // ✅ 전체 사용자 셀렉트 옵션 생성
+    const getAllUsersOptions = () => {
+        const options = [];
+
+        // 첫 번째 옵션: 선택 요청 메시지 (기본값)
+        options.push({
+            value: '',
+            label: '팀원을 선택해주세요'
+        });
+
+        // 본인을 제외한 모든 사용자 추가
+        allUsers.forEach(user => {
+            if (user.userId !== currentUser.userId) {
+                options.push({
+                    value: user.userId,
+                    label: `${user.displayName} (@${user.username})`
                 });
             }
         });
@@ -339,6 +465,7 @@ const Write = () => {
                                 value={projectData.projectTitle}
                                 onChange={(e) => setProjectData({...projectData, projectTitle: e.target.value})}
                                 required
+                                disabled={isCreating} // ✅ 로딩 중 입력 방지
                             />
                         </div>
 
@@ -352,6 +479,7 @@ const Write = () => {
                                 placeholder="프로젝트 설명"
                                 value={projectData.description}
                                 onChange={(e) => setProjectData({...projectData, description: e.target.value})}
+                                disabled={isCreating} // ✅ 로딩 중 입력 방지
                             />
                         </div>
 
@@ -367,6 +495,7 @@ const Write = () => {
                                     value={projectData.startDate}
                                     onChange={(e) => setProjectData({...projectData, startDate: e.target.value})}
                                     required
+                                    disabled={isCreating} // ✅ 로딩 중 입력 방지
                                 />
                             </div>
 
@@ -381,85 +510,130 @@ const Write = () => {
                                     value={projectData.endDate}
                                     onChange={(e) => setProjectData({...projectData, endDate: e.target.value})}
                                     required
+                                    disabled={isCreating} // ✅ 로딩 중 입력 방지
                                 />
                             </div>
                         </div>
 
-                        {/* 팀원 검색 섹션 */}
+                        {/* 팀원 검색 및 선택 섹션 */}
                         <div className="form-group">
                             <label className="form-label">
                                 팀원 검색 및 선택
                                 <span className="selected-count">선택됨: {selectedMemberCount}명</span>
                             </label>
-                            <div className="team-search">
-                                <p className="search-info">
-                                    이미 가입된 회원을 검색하여 팀원으로 초대하세요.
-                                </p>
 
-                                <div className="search-row">
-                                    <input
-                                        type="text"
-                                        id="searchQuery"
-                                        className="search-input"
-                                        placeholder="이름 또는 사용자명으로 검색"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onKeyPress={handleKeyPress}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="search-btn"
-                                        onClick={handleSearch}
-                                    >
-                                        검색
-                                    </button>
+                            {/* ✅ 두 가지 방식의 컨테이너 */}
+                            <div className="team-selection-container">
+
+                                {/* 왼쪽: 검색 방식 */}
+                                <div className="team-search-section">
+                                    <div className="team-search">
+                                        <p className="search-info">
+                                            검색으로 팀원 찾기
+                                        </p>
+
+                                        <div className="search-row">
+                                            <input
+                                                type="text"
+                                                id="searchQuery"
+                                                className="search-input"
+                                                placeholder="이름 또는 사용자명으로 검색"
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                onKeyPress={handleKeyPress}
+                                                disabled={isCreating} // ✅ 로딩 중 입력 방지
+                                            />
+                                            <button
+                                                type="button"
+                                                className="search-btn"
+                                                onClick={handleSearch}
+                                                disabled={isCreating || isSearching} // ✅ 로딩 중 버튼 비활성화
+                                            >
+                                                {isSearching ? '검색 중...' : '검색'}
+                                            </button>
+                                        </div>
+
+                                        <div className="team-list" id="teamList">
+                                            {isSearching ? (
+                                                <div className="loading-message">검색 중...</div>
+                                            ) : searchResults.length === 0 ? (
+                                                <div className="search-placeholder">
+                                                    {searchQuery ? '검색 결과가 없습니다.' : '검색어를 입력하여 회원을 찾아보세요.'}
+                                                </div>
+                                            ) : (
+                                                searchResults.map(user => {
+                                                    const isSelected = selectedMembers.has(user.userId);
+                                                    const isCurrentUser = user.userId === currentUser.userId;
+                                                    return (
+                                                        <div
+                                                            key={user.userId}
+                                                            className={`team-member ${isSelected ? 'selected' : ''} ${isCurrentUser ? 'current-user' : ''}`}
+                                                            onClick={() => !isCurrentUser && !isCreating && toggleMemberSelection(user)} // ✅ 로딩 중 클릭 방지
+                                                        >
+                                                            <div className="member-info">
+                                                                <div className="member-avatar">
+                                                                    {user.displayName?.substring(0, 2) || '??'}
+                                                                </div>
+                                                                <div className="member-details">
+                                                                    <div className="member-name">{user.displayName}</div>
+                                                                    <div className="member-username">@{user.username}</div>
+                                                                </div>
+                                                            </div>
+                                                            {isSelected && !isCurrentUser && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="delete-btn"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (!isCreating) removeMember(user.userId); // ✅ 로딩 중 제거 방지
+                                                                    }}
+                                                                    disabled={isCreating} // ✅ 로딩 중 버튼 비활성화
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            )}
+                                                            {isCurrentUser && (
+                                                                <span className="current-user-badge">나</span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="team-list" id="teamList">
-                                    {isSearching ? (
-                                        <div className="loading-message">검색 중...</div>
-                                    ) : searchResults.length === 0 ? (
-                                        <div className="search-placeholder">
-                                            {searchQuery ? '검색 결과가 없습니다.' : '검색어를 입력하여 회원을 찾아보세요.'}
-                                        </div>
-                                    ) : (
-                                        searchResults.map(user => {
-                                            const isSelected = selectedMembers.has(user.userId);
-                                            const isCurrentUser = user.userId === currentUser.userId;
-                                            return (
-                                                <div
-                                                    key={user.userId}
-                                                    className={`team-member ${isSelected ? 'selected' : ''} ${isCurrentUser ? 'current-user' : ''}`}
-                                                    onClick={() => !isCurrentUser && toggleMemberSelection(user)}
+                                {/* 오른쪽: 셀렉트 방식 */}
+                                <div className="team-select-section">
+                                    <div className="team-select">
+                                        <p className="search-info">
+                                            목록에서 팀원 선택하기
+                                        </p>
+
+                                        {isLoadingAllUsers ? (
+                                            <div className="loading-message">사용자 목록 불러오는 중...</div>
+                                        ) : (
+                                            <>
+                                                <select
+                                                    className="user-select"
+                                                    onChange={handleSelectMember}
+                                                    disabled={isCreating || allUsers.length === 0}
+                                                    defaultValue=""
                                                 >
-                                                    <div className="member-info">
-                                                        <div className="member-avatar">
-                                                            {user.displayName?.substring(0, 2) || '??'}
-                                                        </div>
-                                                        <div className="member-details">
-                                                            <div className="member-name">{user.displayName}</div>
-                                                            <div className="member-username">@{user.username}</div>
-                                                        </div>
-                                                    </div>
-                                                    {isSelected && !isCurrentUser && (
-                                                        <button
-                                                            type="button"
-                                                            className="delete-btn"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                removeMember(user.userId);
-                                                            }}
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    )}
-                                                    {isCurrentUser && (
-                                                        <span className="current-user-badge">나</span>
-                                                    )}
+                                                    {getAllUsersOptions().map(option => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+
+                                                <div className="select-info">
+                                                    <p>전체 회원 수: {allUsers.length}명</p>
+                                                    <p className="small-text">* 목록에서 선택 후 자동으로 추가됩니다</p>
                                                 </div>
-                                            );
-                                        })
-                                    )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
@@ -482,6 +656,7 @@ const Write = () => {
                                     className="add-task-btn-small"
                                     onClick={addTask}
                                     title="업무 추가"
+                                    disabled={isCreating} // ✅ 로딩 중 버튼 비활성화
                                 >
                                     추가
                                 </button>
@@ -501,12 +676,14 @@ const Write = () => {
                                                     className="task-input"
                                                     placeholder="업무 제목"
                                                     value={task.taskName}
-                                                    onChange={(e) => updateTaskName(task.id, e.target.value)}
+                                                    onChange={(e) => !isCreating && updateTaskName(task.id, e.target.value)} // ✅ 로딩 중 입력 방지
+                                                    disabled={isCreating} // ✅ 로딩 중 입력 방지
                                                 />
                                                 <select
                                                     className="assignee-select"
                                                     value={task.assigneeId}
-                                                    onChange={(e) => updateTaskAssignee(task.id, e.target.value)}
+                                                    onChange={(e) => !isCreating && updateTaskAssignee(task.id, e.target.value)} // ✅ 로딩 중 선택 방지
+                                                    disabled={isCreating} // ✅ 로딩 중 선택 방지
                                                 >
                                                     {assigneeOptions.map(option => (
                                                         <option key={option.value} value={option.value}>
@@ -517,7 +694,8 @@ const Write = () => {
                                                 <button
                                                     type="button"
                                                     className="delete-btn"
-                                                    onClick={() => deleteTask(task.id)}
+                                                    onClick={() => !isCreating && deleteTask(task.id)} // ✅ 로딩 중 삭제 방지
+                                                    disabled={isCreating} // ✅ 로딩 중 버튼 비활성화
                                                 >
                                                     ✕
                                                 </button>
@@ -528,8 +706,20 @@ const Write = () => {
                             </div>
                         </div>
 
-                        <button type="submit" className="btn btn-primary">
-                            프로젝트 생성 및 초대 발송
+                        {/* ✅ 프로젝트 생성 버튼에 로딩 상태 적용 */}
+                        <button
+                            type="submit"
+                            className={`btn btn-primary ${isCreating ? 'btn-loading' : ''}`}
+                            disabled={isCreating || !currentUser.isLoggedIn} // ✅ 로딩 중 or 로그인 안됨 시 비활성화
+                        >
+                            {isCreating ? (
+                                <>
+                                    <span className="loading-spinner"></span>
+                                    프로젝트 생성 중...
+                                </>
+                            ) : (
+                                '프로젝트 생성 및 초대 발송'
+                            )}
                         </button>
                     </form>
                 </div>

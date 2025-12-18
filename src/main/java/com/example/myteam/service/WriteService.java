@@ -29,4 +29,7 @@ public interface WriteService {
      * @return 프로젝트 상세 정보
      */
     ProjectVO getProjectById(Integer projectId);
+
+    // ✅ 새로운 메서드: 전체 사용자 목록 조회
+    List<UserVO> getAllUsers();
 }
