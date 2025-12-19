@@ -187,33 +187,37 @@ public class DetailServiceImpl implements DetailService {
     @Override
     @Transactional
     public void updateTaskStatus(Long taskId, boolean isCompleted, Long currentUserId) {
+        // 로그 찍어서 확인해라 (콘솔에 찍힌 ID가 3, 5, 7 중에 있는지 확인용)
+        System.out.println("로그인한 유저 ID: " + currentUserId);
 
         Optional<Task> optionalTask = taskRepository.findById(taskId);
-
         if (!optionalTask.isPresent()) {
             throw new RuntimeException("Task ID " + taskId + " not found.");
         }
         Task task = optionalTask.get();
-
         Project project = task.getProject();
 
-        Long assigneeId = task.getAssignedUser().getUserId();
+        // 1. 담당자 확인 (null 체크 필수)
+        Long assigneeId = (task.getAssignedUser() != null) ? task.getAssignedUser().getUserId() : null;
 
-
+        // 2. 협업자 리스트 추출
         List<Long> collaboratorIds = project.getMembers().stream()
                 .map(member -> member.getUser().getUserId())
                 .collect(Collectors.toList());
 
+        System.out.println("이 프로젝트의 권한 유저들: " + collaboratorIds);
 
-        if (!assigneeId.equals(currentUserId) // 담당자가 아닌 경우
-                && !collaboratorIds.contains(currentUserId)) { // 협업자 목록에도 없는 경우
+        // 3. 권한 체크 (담당자이거나 협업자 리스트에 포함되어야 함)
+        // .equals()를 써서 객체 비교를 확실히 해라
+        boolean isAssignee = assigneeId != null && assigneeId.equals(currentUserId);
+        boolean isCollaborator = collaboratorIds.contains(currentUserId);
 
-
-            throw new SecurityException("Task 상태 변경 권한이 없습니다. (담당자 또는 프로젝트 협업자만 가능)");
+        if (!isAssignee && !isCollaborator) {
+            throw new SecurityException("Task 상태 변경 권한이 없습니다. 현재 접속 ID: " + currentUserId);
         }
 
+        // 4. 상태 업데이트
         String newStatus = isCompleted ? "COMPLETED" : "IN_PROGRESS";
-
         task.setIsCompleted(isCompleted);
         task.setStatus(newStatus);
 
