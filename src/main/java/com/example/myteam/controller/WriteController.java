@@ -26,7 +26,7 @@ public class WriteController {
     }
 
     // 프로젝트 생성 API - Write.jsx의 handleSubmit에서 호출됨
-    @PostMapping("/projects")
+    @PostMapping("/projects/{userId}")
     public ResponseEntity<Map<String, Object>> createProject(
             @RequestBody WriteVO projectCreateVO,
             @RequestHeader("X-User-Id") Integer currentUserId) {

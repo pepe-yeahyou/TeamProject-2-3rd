@@ -5,13 +5,14 @@
 
 /* 1. 전체 레이아웃 컨테이너 */
 .dashboard-layout {
-    /* GlobalStyles의 body 배경색을 따름 (var(--color-bg-primary)) */
-    min-height: 100vh;
-    padding: 20px 40px 40px 40px;
-    background-color: #1a1a2e;
     display: flex;
     flex-direction: column;
-    gap: 30px; /* Header, SummaryCards, ProjectList 간의 수직 간격 */
+    height: 100vh;
+    padding: 20px 30px !important; /* 전체 여백 살짝 축소 */
+    background-color: #0f172a;
+    color: white;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* 2. 로딩 및 오류 메시지 스타일 */
@@ -84,39 +85,27 @@
 }
 
 /* 4. 주요 섹션 제목 스타일 (SummaryCards와 ProjectList 위에 사용될 수 있음) */
-.section-title {
-    font-size: 1.8em;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    margin-bottom: 20px;
-    padding-top: 20px;
-}
+.section-title { font-size: 20px !important; margin-bottom: 20px !important; font-weight: 700; }
 
 /* 5. 요약 카드 컨테이너 */
 .summary-cards-container {
-    display: flex;
-    gap: 30px; /* 카드 간 간격을 대시보드 레이아웃 간격과 통일 */
-    flex-wrap: wrap;
-    padding: 0; /* DashboardPage에서 이미 패딩을 줬으므로 제거 */
-    justify-content: space-between; /* 카드가 남을 경우 균등 배치 */
+    display: flex !important;
+    gap: 15px;
+    margin-bottom: 25px !important;
 }
 
 /* 6. 개별 요약 카드 */
 .summary-card {
     flex: 1;
-    /* 최소 너비 설정 (4개 이하일 경우 화면 너비에 맞게 늘어나도록) */
-    min-width: 200px; 
-    padding: 25px;
-    background-color: var(--color-bg-card); /* #1C2538 */
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    color: var(--color-text-primary);
-    transition: transform 0.2s;
+    background-color: #1e293b;
+    padding: 15px 20px !important;
+    border-radius: 10px;
+    border: 1px solid #334155;
 }
 
-.summary-card:hover {
-    transform: translateY(-3px); /* 호버 시 약간 위로 뜨는 효과 */
-}
+.summary-card:hover { transform: translateY(-3px); }
+.summary-card .card-title { font-size: 13px !important; margin-bottom: 5px !important; }
+.summary-card .card-count { font-size: 24px !important; }
 
 /* 7. 카드 제목 */
 .card-title {
@@ -128,7 +117,7 @@
 
 /* 8. 카드 카운트 숫자 */
 .card-count {
-    font-size: 2.5em; /* 36px -> 2.5em */
+    font-size: 1.8em; /* 36px -> 2.5em */
     font-weight: 700;
     margin: 0;
     line-height: 1; /* 높이가 과도하게 잡히는 것 방지 */
@@ -136,15 +125,15 @@
 
 /* 9. 프로젝트 목록 컨테이너 */
 .project-list-container {
-    padding: 0; /* DashboardPage에서 이미 좌우 패딩을 처리했으므로 0 */
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* 10. 프로젝트 그리드 레이아웃 */
 .project-grid {
-    display: grid;
-    /* 반응형 그리드: 최소 300px 너비를 유지하며 가능한 많은 열을 배치 */
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-    gap: 25px;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 15px !important; /* 카드 사이 간격 축소 */
 }
 
 /* 11. 프로젝트가 없을 때 메시지 컨테이너 */
@@ -164,14 +153,11 @@
 
 /* 12. 프로젝트 카드 전체 스타일 */
 .project-card {
-    background-color: var(--color-bg-card); /* #1C2538 */
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
+    background-color: #1e293b;
+    padding: 18px !important; /* 내부 여백 줄임 */
+    border-radius: 12px;
+    border: 1px solid #334155;
+    height: fit-content;
 }
 
 .project-card:hover {
@@ -184,116 +170,105 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    gap: 10px;
 }
 
 .project-card .card-title {
-    margin: 0;
-    font-size: 1.3em;
-    color: var(--color-accent-blue); /* #3B82F6 */
+    font-size: 1.05rem !important; /* 제목 크기 축소 */
+    color: #a5b4fc !important;
     font-weight: 700;
+    white-space: nowrap; /* 제목 줄바꿈 방지 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 너무 길면 ... 처리 */
 }
 
 /* 14. 상태 배지 */
 .status-badge {
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.8em;
-    color: white;
-    font-weight: bold;
-    /* 배경색은 컴포넌트에서 동적으로 지정됩니다. */
+    padding: 3px 8px; /* 배지 크기 축소 */
+    border-radius: 6px;
+    font-size: 11px; /* 글자 축소 */
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 /* 15. 프로젝트 설명 텍스트 */
+/* 설명글 높이 및 크기 조절 */
+/* 설명문 사진처럼 간결하게 */
 .description-text {
-    color: var(--color-text-secondary); /* #CCCCCC */
-    font-size: 0.9em;
-    margin-bottom: 20px;
-    /* 3줄 이상 넘치면 생략 처리 (선택 사항) */
-    /* overflow: hidden;
+    color: #94a3b8;
+    font-size: 13px !important; /* 설명 글씨 축소 */
+    margin: 0 0 15px 0 !important;
+    white-space: nowrap; /* 무조건 한 줄 */
+    overflow: hidden;
     text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3; 
-    -webkit-box-orient: vertical; */
 }
 
 /* 16. 정보 행 (기간, 담당자) */
 .info-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 0.9em;
+    margin-bottom: 6px !important;
+    font-size: 13px !important; /* 폰트 축소 */
 }
 
-.info-label {
-    color: var(--color-text-secondary); 
-    font-weight: 600;
-}
-
-.info-value {
-    color: var(--color-text-primary);
+.info-label { color: #64748b; font-weight: 600; flex-shrink: 0; }
+.info-value { 
+    color: #f8fafc; 
+    text-align: right; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    margin-left: 10px;
 }
 
 /* 17. 진척도 영역 */
-.progress-container {
-    margin-top: 15px;
-    margin-bottom: 15px;
-}
-
-.progress-text {
-    font-size: 0.9em;
-    color: var(--color-text-secondary);
-    margin: 0 0 5px 0;
-    text-align: right;
-}
-
+.progress-container { margin-top: 20px; }
+.progress-text { text-align: right; font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
 .progress-bar-background {
-    height: 10px;
-    background-color: var(--color-bg-primary); /* #101827 (어두운 배경) */
-    border-radius: 5px;
-    overflow: hidden;
+    height: 8px !important;
+    background-color: #0f172a;
+    border-radius: 10px;
 }
-
-/* 진척도 채움 막대 (width와 background-color는 인라인으로 지정) */
 .progress-bar-fill {
     height: 100%;
-    border-radius: 5px;
-    transition: width 0.5s ease-in-out;
+    background: linear-gradient(90deg, #3b82f6, #2dd4bf) !important;
+    border-radius: 10px;
 }
 
 /* 18. 협업자 영역 */
 .co-workers-group {
+    margin-top: 15px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #334155;
     display: flex;
+    justify-content: space-between; /* 양 끝 정렬 */
     align-items: center;
-    gap: 15px;
-    margin-top: 15px;
-    border-top: 1px dashed var(--color-bg-primary); /* 구분선 */
-    padding-top: 15px;
+    gap: 10px;
 }
 
+/* 협업자 글씨를 기간, 담당자(info-label)와 똑같이 만듦 */
+.co-workers-group .info-label {
+    font-size: 13px !important; /* info-row와 동일한 사이즈 */
+    color: #64748b;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* 아바타 그룹을 오른쪽 끝으로 */
 .avatar-group {
     display: flex;
+    flex-direction: row-reverse; /* 아바타 겹치는 방향 유지 */
+    justify-content: flex-start;
 }
 
-/* 19. 아바타 아이템 (이니셜) */
+/* 아바타 크기 살짝 더 최적화 */
 .avatar-item, .more-avatar-count {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: var(--color-bg-primary); /* #101827 */
-    color: var(--color-text-primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 13px;
-    font-weight: 600;
-    margin-left: -10px; /* 겹치기 효과 */
-    border: 3px solid var(--color-bg-card); /* 카드 배경색으로 테두리 */
-    z-index: 10;
-}
-
-.more-avatar-count {
-    background-color: #555;
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+    margin-left: -8px; /* 아바타끼리 살짝 겹치게 */
+    border: 2px solid #1e293b; /* 카드 배경색과 맞춤 */
 }
 
 /* --- 반응형 추가 --- */
@@ -304,36 +279,113 @@
     }
 }
 
+/* --- 반응형 최적화 --- */
+
 @media (max-width: 768px) {
+    /* 1. 전체 레이아웃 여백 조정 */
+    .dashboard-layout {
+        padding: 15px !important;
+        overflow-y: auto; /* 모바일은 전체 스크롤이 편함 */
+    }
+
+    /* 2. 헤더 정렬 */
     .main-header {
-        flex-direction: column; /* 로고와 정보창을 세로로 배치 */
+        flex-direction: column;
         align-items: flex-start;
-        padding: 20px 0;
+        gap: 15px;
+        padding: 15px 0;
     }
 
     .header-info {
         width: 100%;
-        justify-content: space-between; /* 모바일에서 이름은 왼쪽, 버튼은 오른쪽 */
-        gap: 15px;
+        justify-content: space-between;
     }
 
-    .user-greeting {
-        font-size: 1.1em;
+    /* 3. ★ 요약 카드 세로 배치 (가장 중요한 수정) */
+    .summary-cards-container {
+        flex-direction: column !important; /* 가로에서 세로로 강제 변경 */
+        gap: 12px;
+        margin-bottom: 25px !important;
     }
 
-    /* 요약 카드들이 모바일에서는 1개씩 보이도록 */
     .summary-card {
-        min-width: 100%; 
+        width: 100%; /* 부모 너비 꽉 채우기 */
+        box-sizing: border-box;
     }
+
+    /* 4. 프로젝트 그리드: 1열로 변경 */
+    .project-grid {
+        grid-template-columns: 1fr !important; 
+        gap: 15px !important;
+    }
+
+    /* 5. 글자 크기 미세 조정 (모바일 가독성) */
+    .user-greeting { font-size: 1.2em; }
+    .section-title { font-size: 18px !important; }
 }
 
 @media (max-width: 480px) {
-    .header-info {
-        flex-direction: column; /* 아주 작은 화면에선 이름/버튼 모두 세로로 */
-        align-items: stretch;
+    /* 아주 작은 화면에서 버튼도 세로로 */
+    .header-button-group {
+        width: 100%;
+        flex-direction: column;
     }
     
-    .header-info button {
-        width: 100%; /* 버튼을 가득 채움 */
+    .header-button-group button {
+        width: 100%;
     }
+}
+
+/* 3-1. 버튼 애니메이션 공통 */
+.new-project-button, .logout-button {
+    transition: all 0.2s ease-in-out !important; /* 부드러운 변화 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* 3-2. 새 프로젝트 버튼 (+ 새 프로젝트) */
+.new-project-button {
+    padding: 10px 20px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.new-project-button:hover {
+    background-color: #9f60e5 !important;
+    transform: translateY(-2px); /* 살짝 위로 뜸 */
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4)
+}
+
+.new-project-button:active {
+    transform: translateY(0); /* 클릭 시 다시 내려감 */
+    filter: brightness(0.9);
+}
+
+/* 3-3. 로그아웃 버튼 */
+.logout-button {
+    background-color: transparent !important;
+    color: #94a3b8 !important;
+    border: 1px solid #334155 !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.logout-button:hover {
+    color: #ef4444 !important; /* 호버 시 빨간색 */
+    border-color: #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important; /* 아주 연한 빨간 배경 */
+    transform: translateY(-2px);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+    background-color: rgba(239, 68, 68, 0.2) !important;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axios from '../api/axios';
 import Chat from './Chat';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../css/Detail.css';
