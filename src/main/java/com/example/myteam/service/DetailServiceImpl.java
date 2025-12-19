@@ -47,7 +47,7 @@ public class DetailServiceImpl implements DetailService {
 
         List<MemberVO> coWorkers = project.getMembers().stream()
                 .map(member -> MemberVO.builder()
-                        .userId(member.getUser().getUserId())
+                        .userId(member.getUser().getUserId().intValue())
                         .displayName(member.getUser().getDisplayName())
                         .isLeader(false)
                         .joinedAt(member.getJoinedAt())
@@ -69,7 +69,7 @@ public class DetailServiceImpl implements DetailService {
 
         List<TaskVO> workList = project.getTasks().stream()
                 .map(task -> TaskVO.builder()
-                        .taskId(task.getTaskId())
+                        .taskId(task.getTaskId().intValue())
                         .taskName(task.getTaskName())
                         .status(task.getStatus())
                         .isCompleted(task.getIsCompleted())

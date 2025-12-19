@@ -17,6 +17,4 @@ public class UserVO {
     private String displayName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-
 }

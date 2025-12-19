@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Data
-public class WriteVO {
+public class WriteVO_disable {
     private String projectTitle;
     private String description;
     private LocalDate startDate;

@@ -1,12 +1,12 @@
 package com.example.myteam.service;
 
-import com.example.myteam.command.WriteVO;
+import com.example.myteam.command.WriteVO_disable;
 import com.example.myteam.command.ProjectVO;
 import com.example.myteam.command.UserVO;
 
 import java.util.List;
 
-public interface WriteService {
+public interface WriteService_disable {
 
     /**
      * 프로젝트 생성 메인 메서드
@@ -14,7 +14,7 @@ public interface WriteService {
      * @param currentUserId 현재 로그인한 사용자 ID (프로젝트 소유자)
      * @return 생성된 프로젝트의 ID
      */
-    Integer createProject(WriteVO writeVO, Integer currentUserId);
+    Integer createProject(WriteVO_disable writeVO, Integer currentUserId);
 
     /**
      * 사용자 검색 (이름 또는 사용자명으로)

@@ -1,9 +1,9 @@
 package com.example.myteam.controller;
 
-import com.example.myteam.command.WriteVO;
+import com.example.myteam.command.WriteVO_disable;
 import com.example.myteam.command.ProjectVO;
 import com.example.myteam.command.UserVO;
-import com.example.myteam.service.WriteService;
+import com.example.myteam.service.WriteService_disable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,19 +16,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:3000")
-public class WriteController {
+public class WriteController_disable {
 
-    private final WriteService writeService;
+    private final WriteService_disable writeService;
 
     @Autowired
-    public WriteController(WriteService writeService) {
+    public WriteController_disable(WriteService_disable writeService) {
         this.writeService = writeService;
     }
 
     // 프로젝트 생성 API - Write.jsx의 handleSubmit에서 호출됨
     @PostMapping("/projects")
     public ResponseEntity<Map<String, Object>> createProject(
-            @RequestBody WriteVO projectCreateVO,
+            @RequestBody WriteVO_disable projectCreateVO,
             @RequestHeader(value = "Authorization", required = false) String authHeader,  // ✅ Authorization 헤더 받기
             @RequestHeader(value = "X-User-Id", required = false) Integer currentUserId) {  // ✅ 둘 다 optional로
 

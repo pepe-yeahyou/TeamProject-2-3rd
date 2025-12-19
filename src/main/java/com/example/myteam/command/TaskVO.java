@@ -6,7 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class TaskVO {
-    private Long taskId;
+    private int taskId;
+    private int userId;
     private String taskName;
     private String assignedUserName;
     private String status;

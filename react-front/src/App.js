@@ -6,7 +6,8 @@ import Register from './pages/Register';
 import useAuth from './hooks/useAuth';
 import React from 'react';
 import Detail from './component/Detail';
-import Write from "./pages/Write";
+//import Write from "./pages/Write";
+import Write from "./component/Write";
 
 function App() {
   const { isAuthenticated } = useAuth(); // 인증 여부 확인

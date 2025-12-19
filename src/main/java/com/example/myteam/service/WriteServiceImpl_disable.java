@@ -1,13 +1,12 @@
 package com.example.myteam.service;
 
-import com.example.myteam.command.WriteVO;
+import com.example.myteam.command.WriteVO_disable;
 import com.example.myteam.command.ProjectVO;
 import com.example.myteam.command.UserVO;
 import com.example.myteam.command.TaskCreateVO;
 import com.example.myteam.entity.*;
 import com.example.myteam.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class WriteServiceImpl implements WriteService {
+public class WriteServiceImpl_disable implements WriteService_disable {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -25,10 +24,10 @@ public class WriteServiceImpl implements WriteService {
     private final TaskRepository taskRepository;
 
     @Autowired
-    public WriteServiceImpl(ProjectRepository projectRepository,
-                            UserRepository userRepository,
-                            MemberRepository memberRepository,
-                            TaskRepository taskRepository) {
+    public WriteServiceImpl_disable(ProjectRepository projectRepository,
+                                    UserRepository userRepository,
+                                    MemberRepository memberRepository,
+                                    TaskRepository taskRepository) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.memberRepository = memberRepository;
@@ -37,7 +36,7 @@ public class WriteServiceImpl implements WriteService {
 
     @Override
     @Transactional
-    public Integer createProject(WriteVO writeVO, Integer currentUserId) {
+    public Integer createProject(WriteVO_disable writeVO, Integer currentUserId) {
         // 1. 현재 사용자 조회 (프로젝트 소유자)
         User owner = userRepository.findById(Long.valueOf(currentUserId))
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + currentUserId));
