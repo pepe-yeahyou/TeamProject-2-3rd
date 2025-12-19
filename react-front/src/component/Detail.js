@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import Chat from './Chat';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -6,66 +6,69 @@ import '../css/Detail.css';
 
 const API_BASE_URL = 'http://localhost:8484/detail';
 
-/* ✅ JWT 파싱 유틸 (추가) */
+/* ✅ JWT 파싱 유틸 */
 const parseJwt = (token) => {
+    if (!token) return null;
     try {
         const base64Payload = token.split('.')[1];
-        return JSON.parse(atob(base64Payload));
+        const payload = JSON.parse(atob(base64Payload));
+        console.log("Parsed JWT Payload:", payload); // 유저 ID 키값 확인용
+        return payload;
     } catch (e) {
+        console.error("JWT Parsing Error:", e);
         return null;
     }
 };
 
+/* ✅ 진척도 계산 로직 유지 */
 const calculateProgress = (workList) => {
+    if (!workList || workList.length === 0) return 0;
     const totalTasks = workList.length;
     const completedTasks = workList.filter(task => task.status === 'COMPLETED').length;
-    return totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    return Math.round((completedTasks / totalTasks) * 100);
 };
 
 function Detail() {
     const { projectId } = useParams();
     const navigate = useNavigate();
 
-    /* =========================
-       ✅ 하드코딩 제거 → 실제 로그인 유저
-       ========================= */
-    const token = localStorage.getItem('jwt_token');
-    const decodedToken = token ? parseJwt(token) : null;
+    /* ✅ 실제 로그인 유저 정보 추출 (서버 DB의 유저 ID와 타입 일치 필수) */
+    const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
+    
+    const currentUser = useMemo(() => {
+        const decodedToken = token ? parseJwt(token) : null;
+        if (!decodedToken) return null;
 
-    const currentUser = decodedToken
-        ? {
-            userId: decodedToken.userId,
-            displayName: localStorage.getItem('display_name'),
+        return {
+            // 서버 DB가 ID 7을 보낸다면, 여기서도 숫자 7이어야 함 (decodedToken의 ID 키값을 확인하세요)
+            userId: decodedToken.userId ? Number(decodedToken.userId) : Number(decodedToken.id), 
+            userName: decodedToken.sub,
+            displayName: localStorage.getItem('displayName') || "사용자",
             isLoggedIn: true,
-        }
-        : null;
+        };
+    }, [token]);
 
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // 💡 [추가] 기간 만료 체크 로직
-    const isExpired =
-        project?.endDate &&
-        new Date(project.endDate) < new Date().setHours(0, 0, 0, 0);
-
+    // 💡 권한 체크 변수들
+    const isExpired = project?.endDate && new Date(project.endDate) < new Date().setHours(0, 0, 0, 0);
     const coWorkers = project?.coWorkers || [];
-    const isProjectManager =
-        project && currentUser && project.ownerId === currentUser.userId;
-    const isCoWorker =
-        currentUser && coWorkers.some(worker => worker.userId === currentUser.userId);
-
-    // 💡 [수정] 권한 변수
+    
+    // 타입 불일치 방지를 위해 Number() 처리
+    const isProjectManager = project && currentUser && Number(project.ownerId) === currentUser.userId;
+    const isCoWorker = currentUser && coWorkers.some(worker => Number(worker.userId) === currentUser.userId);
+    
     const hasTaskPermission = (isProjectManager || isCoWorker) && !isExpired;
     const hasEditPermission = isProjectManager;
 
     const fetchProjectDetail = useCallback(async () => {
+        if (!token) return;
         try {
             setLoading(true);
             const response = await axios.get(`${API_BASE_URL}/${projectId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
             setProject(response.data);
             setError(null);
@@ -78,8 +81,10 @@ function Detail() {
     }, [projectId, token]);
 
     useEffect(() => {
-        fetchProjectDetail();
-    }, [fetchProjectDetail]);
+        if (token) {
+            fetchProjectDetail();
+        }
+    }, [fetchProjectDetail, token]);
 
     const handleProgressUpdate = async (newProgress) => {
         if (!isProjectManager) return;
@@ -92,6 +97,7 @@ function Detail() {
                 coWorkers: project.coWorkers || [],
                 workList: project.workList || [],
                 managerName: project.managerName,
+                progress: newProgress 
             };
 
             await axios.post(`${API_BASE_URL}/${projectId}`, updatePayload, {
@@ -106,17 +112,15 @@ function Detail() {
         if (!project || !hasEditPermission)
             return alert('프로젝트 수정 권한이 없거나 데이터 로딩 중입니다.');
 
-        const projectDataForUpdate = {
-            projectId: project.projectId,
-            projectTitle: project.title,
-            description: project.description,
-            startDate: project.startDate,
-            endDate: project.endDate,
-        };
-
         navigate('/write', {
             state: {
-                projectData: projectDataForUpdate,
+                projectData: {
+                    projectId: project.projectId,
+                    projectTitle: project.title,
+                    description: project.description,
+                    startDate: project.startDate,
+                    endDate: project.endDate,
+                },
                 isEditMode: true,
             },
         });
@@ -127,60 +131,72 @@ function Detail() {
         if (!window.confirm('프로젝트를 삭제하시겠습니까?')) return;
 
         try {
-            await axios.post(`${API_BASE_URL}/${projectId}?operation=DELETE`);
+            await axios.post(`${API_BASE_URL}/${projectId}?operation=DELETE`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             alert('프로젝트가 성공적으로 삭제되었습니다.');
             navigate('/');
         } catch (err) {
             alert('프로젝트 삭제에 실패했습니다.');
-            console.error(err);
         }
     };
 
     const handleTaskStatusToggle = async (taskId, currentStatus) => {
         if (isExpired) return alert('기간이 만료된 프로젝트는 수정할 수 없습니다.');
-        if (!hasTaskPermission) return alert('작업 상태 변경 권한이 없습니다.');
-
-        const isCompleted = currentStatus !== 'COMPLETED';
-        const confirmMessage = isCompleted ? '완료' : '진행중';
-
-        if (!window.confirm(`작업 상태를 [${confirmMessage}]으로 변경하시겠습니까?`))
-            return;
+        
+        // 현재 로컬에서 판단하는 권한 체크 (서버 SecurityException 방어)
+        if (!hasTaskPermission) {
+            console.log("현재 접속 유저 ID:", currentUser?.userId);
+            console.log("매니저 여부:", isProjectManager);
+            console.log("협업자 여부:", isCoWorker);
+            return alert('작업 상태 변경 권한이 없습니다. (담당자 또는 협업자만 가능)');
+        }
+        
+        const isCompleted = currentStatus !== 'COMPLETED'; 
+        if (!window.confirm(`작업 상태를 변경하시겠습니까?`)) return;
 
         try {
+            // ✅ 서버 컨트롤러가 요구하는 형식: @PostMapping("/{projectId}/task/{taskId}")
             await axios.post(
-                `${API_BASE_URL}/${projectId}/task/${taskId}?isCompleted=${isCompleted}`
+                `${API_BASE_URL}/${projectId}/task/${taskId}?isCompleted=${isCompleted}`, 
+                {}, 
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            const newWorkList = project.workList.map(task =>
-                task.taskId === taskId
-                    ? { ...task, status: isCompleted ? 'COMPLETED' : 'IN_PROGRESS' }
+            // 로컬 상태 업데이트
+            const newWorkList = (project.workList || []).map(task => 
+                task.taskId === taskId 
+                    ? { ...task, status: isCompleted ? 'COMPLETED' : 'IN_PROGRESS' } 
                     : task
             );
 
             const newProgress = calculateProgress(newWorkList);
+
             if (isProjectManager) {
-                await handleProgressUpdate(newProgress);
+                 await handleProgressUpdate(newProgress);
             }
 
-            setProject(prev => ({
-                ...prev,
+            setProject(prevProject => ({ 
+                ...prevProject, 
                 workList: newWorkList,
-                progress: newProgress,
+                progressPercentage: newProgress 
             }));
+
         } catch (err) {
-            alert('작업 상태 변경에 실패했습니다.');
-            console.error(err);
+            // 서버의 SecurityException 메시지를 직접 표시
+            const serverMessage = err.response?.data;
+            console.error('서버 에러 응답:', serverMessage);
+            alert(`변경 실패: ${serverMessage || '권한이 없거나 서버 오류입니다.'}`);
         }
     };
 
-    if (loading) return <div>로딩 중...</div>;
-    if (error) return <div>오류: {error}</div>;
-    if (!currentUser) return <div>로그인이 필요합니다.</div>;
-    if (!project) return <div>프로젝트를 찾을 수 없습니다.</div>;
+    if (loading) return <div className="loading">로딩 중...</div>;
+    if (error) return <div className="error">오류: {error}</div>;
+    if (!currentUser) return <div className="auth-error">로그인이 필요합니다.</div>;
+    if (!project) return <div className="not-found">프로젝트를 찾을 수 없습니다.</div>;
 
-    const calculatedProgress = calculateProgress(project.workList || []);
-    let projectStatus =
-        calculatedProgress === 100 ? '완료' : isExpired ? '기간만료' : '진행중';
+    const currentProgress = project.progressPercentage || calculateProgress(project.workList || []);
+    let projectStatus = project.status || (currentProgress === 100 ? '완료' : (isExpired ? '기간만료' : '진행중'));
 
     return (
         <div className="detail-page">
@@ -193,33 +209,44 @@ function Detail() {
                         </h2>
                         {hasEditPermission && (
                             <div className="action-buttons">
-                                <button onClick={handleEditClick} title="수정">✏️</button>
-                                <button onClick={handleDelete} title="삭제" style={{ marginLeft: '10px' }}>🗑️</button>
+                                <button onClick={handleEditClick} className="icon-btn">✏️</button>
+                                <button onClick={handleDelete} className="icon-btn" style={{ marginLeft: '10px' }}>🗑️</button>
                             </div>
                         )}
                     </div>
-
-                    <div className="project-period">
-                        <h4>기간: {project.startDate || '미설정'} ~ {project.endDate || '미설정'}</h4>
+                    <div className="project-period" style={{ marginTop: '10px' }}>
+                        <h4>기간: {project.startDate} ~ {project.endDate}</h4>
                     </div>
+                    <p style={{ marginTop: '15px' }}>{project.description}</p>
+                </div>
 
-                    <p>{project.description}</p>
+                <div className="detail-card progress-section">
+                    <h3>진척도</h3>
+                    <div className="progress-info">
+                        <span>전체 진행률</span>
+                        <span>{currentProgress}%</span>
+                    </div>
+                    <div className="progress-bar-container">
+                        <div className="progress-bar" style={{ width: `${currentProgress}%` }}></div>
+                    </div>
                 </div>
 
                 <div className="detail-card task-list">
                     <h3>해야 할 것 (작업 목록)</h3>
                     <ul>
-                        {project.workList.map(task => (
+                        {(project.workList || []).map(task => (
                             <li key={task.taskId}>
                                 <button
                                     className={`round-button ${task.status === 'COMPLETED' ? 'completed' : 'in-progress'}`}
                                     onClick={() => handleTaskStatusToggle(task.taskId, task.status)}
-                                    disabled={!hasTaskPermission || isExpired}
                                 >
                                     {task.status === 'COMPLETED' ? '✓' : ''}
                                 </button>
                                 <span style={{ textDecoration: task.status === 'COMPLETED' ? 'line-through' : 'none' }}>
                                     {task.taskName}
+                                    {task.assignedUserName && (
+                                        <div className="task-assignee">담당: {task.assignedUserName}</div>
+                                    )}
                                 </span>
                             </li>
                         ))}
@@ -230,17 +257,15 @@ function Detail() {
             <div className="sidebar">
                 <div className="detail-card team-info-section">
                     <h3>팀 정보</h3>
-                    <div className="info-item">
-                        <strong>담당자</strong> {project.managerName}
-                    </div>
-                    {project.coWorkers.map(w => (
+                    <div className="info-item"><strong>담당자</strong> {project.managerName}</div>
+                    {(project.coWorkers || []).map(w => (
                         <div key={w.userId} className="info-item">
                             <strong>협업자</strong> {w.displayName}
                         </div>
                     ))}
                 </div>
 
-                {projectStatus === '진행중' ? (
+                {project.isChatActive !== false ? (
                     <div className="detail-card chat-section">
                         <h3>채팅</h3>
                         <Chat
@@ -251,11 +276,7 @@ function Detail() {
                     </div>
                 ) : (
                     <div className="detail-card completion-message">
-                        <h4>
-                            {projectStatus === '완료'
-                                ? '해당 프로젝트는 완료되었습니다.'
-                                : '기간이 만료되어 채팅이 불가합니다.'}
-                        </h4>
+                        <h4>프로젝트가 활성 상태가 아닙니다.</h4>
                     </div>
                 )}
             </div>
