@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2. 토큰 유효성 검사 및 인증 처리
         if (token != null && jwtTokenProvider.validateToken(token)) {
-
+            System.out.println("JWT 존재함");
             // 토큰에서 사용자 이름(Username) 추출
             String username = jwtTokenProvider.getUsernameFromToken(token);
 
@@ -54,6 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 3. Security Context에 인증 객체 저장
             // 이로써 해당 요청은 인증된 상태로 간주됩니다.
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            System.out.println("JWT 없음");
         }
 
         // 다음 필터 또는 서블릿으로 요청 전달

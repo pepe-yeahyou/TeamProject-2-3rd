@@ -52,7 +52,7 @@ public class SecurityConfig {
 
                         // 2. 프로젝트 관련 API (반드시 authenticated()가 적용되어야 함)
                         // antMatchers 방식처럼 더 명확하게 "/api/projects" 자체와 하위 경로를 모두 포함
-                        .requestMatchers("/api/projects", "/api/projects/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/api/projects", "/api/projects/**").authenticated()
 
                         // 3. 기타 페이지 접근 권한
                         .requestMatchers("/dashboard/**", "/detail/**", "/summery").authenticated()
