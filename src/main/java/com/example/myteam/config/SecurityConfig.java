@@ -47,11 +47,19 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(f -> f.sameOrigin()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 이 경로들은 무조건 통과
-                        .requestMatchers("/login", "/register", "/h2-console/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/dashboard/**", "/detail/**").authenticated()
-                        .requestMatchers("/summery", "/projects/**", "/detail/**", "/api/projects/**").authenticated()
-                        // 나머지는 인증 필요
+                        // 1. 보안과 무관한 공통 리소스 및 API 허용
+                        .requestMatchers("/login", "/register", "/h2-console/**", "/favicon.ico", "/api/chat/**").permitAll()
+
+                        // 2. 프로젝트 관련 API (반드시 authenticated()가 적용되어야 함)
+                        // antMatchers 방식처럼 더 명확하게 "/api/projects" 자체와 하위 경로를 모두 포함
+                        .requestMatchers("/api/projects", "/api/projects/**").hasAuthority("ROLE_USER")
+
+                        // 3. 기타 페이지 접근 권한
+                        .requestMatchers("/dashboard/**", "/detail/**", "/summery").authenticated()
+
+                        .requestMatchers(org.springframework.web.cors.CorsUtils::isPreFlightRequest).permitAll()
+
+                        // 4. 나머지 모든 요청
                         .anyRequest().authenticated()
                 );
 

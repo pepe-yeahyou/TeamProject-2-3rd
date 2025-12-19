@@ -24,7 +24,6 @@ body {
     font-family: 'Pretendard', sans-serif;
     height: 100vh;
     width: 100vw;
-    overflow: hidden; /* 전체 휠 방지 */
 }
 
 button { font-family: inherit; }
