@@ -21,7 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/detail")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://172.30.1.6:3000", "http://localhost:3000"})
 public class DetailController {
 
     private final DetailService detailService;
@@ -113,6 +113,7 @@ public class DetailController {
         return ResponseEntity.ok("Initiating WebSocket connection for project " + projectId);
     }
 
+    /*
     @GetMapping("/files/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
 
@@ -123,7 +124,7 @@ public class DetailController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File ID " + fileId + " not found in database.")
         );
 
-        try {
+       try {
             // 2. 파일 시스템에서 파일을 Resource 형태로 로드
             Path filePath = this.fileStorageLocation.resolve(fileInfo.getStoragePath()).normalize();
             Resource resource = new UrlResource(filePath.toUri());
@@ -145,5 +146,5 @@ public class DetailController {
             // 파일 경로가 유효하지 않은 경우
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "File path error.");
         }
-    }
+    }*/
 }

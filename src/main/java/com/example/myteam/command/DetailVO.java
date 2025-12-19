@@ -1,11 +1,11 @@
 package com.example.myteam.command;
 
 import lombok.Builder;
-import lombok.Data; // @Data 사용
+import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
 
-@Data // @Getter, @Setter, @ToString, @EqualsAndHashCode 등을 대체
+@Data
 @Builder
 public class DetailVO {
     private Long projectId;
@@ -15,7 +15,6 @@ public class DetailVO {
     private int progressPercentage;
 
     private Long ownerId;
-
     private String managerName;
     private List<MemberVO> coWorkers;
 
@@ -23,4 +22,8 @@ public class DetailVO {
     private List<FileVO> attachedFiles;
 
     private boolean isChatActive;
+
+    // 💡 [추가] 기간 데이터 필드
+    private LocalDate startDate;
+    private LocalDate endDate;
 }

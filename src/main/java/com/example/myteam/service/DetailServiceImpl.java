@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,8 +37,6 @@ public class DetailServiceImpl implements DetailService {
     }
 
 
-    @Override
-    @Transactional(readOnly = true)
     public DetailVO getProjectDetail(Long projectId) {
         Optional<Project> optionalProject = detailRepository.findByProjectId(projectId);
 
@@ -49,8 +48,8 @@ public class DetailServiceImpl implements DetailService {
 
         Long ownerId = project.getOwner().getUserId();
         String managerName = project.getOwner().getDisplayName();
-        List<MemberVO> coWorkers = project.getMembers().stream()
 
+        List<MemberVO> coWorkers = project.getMembers().stream()
                 .map(member -> MemberVO.builder()
                         .userId(member.getUser().getUserId())
                         .displayName(member.getUser().getDisplayName())
@@ -58,8 +57,19 @@ public class DetailServiceImpl implements DetailService {
                         .joinedAt(member.getJoinedAt())
                         .build())
                 .collect(Collectors.toList());
+
         int progress = calculateProgress(projectId);
-        boolean isProjectCompleted = isProjectCompleted(project.getStatus());
+
+        // 💡 [추가/수정] 기간 만료 및 상태 로직
+        LocalDate today = LocalDate.now();
+        String currentStatus = project.getStatus();
+
+        // 만약 완료가 아니고, 종료일이 오늘보다 이전이면 "기간만료"로 판단
+        if (!"완료".equalsIgnoreCase(currentStatus) && project.getEndDate() != null && project.getEndDate().isBefore(today)) {
+            currentStatus = "기간만료";
+        }
+
+        boolean isChatEnabled = "진행중".equalsIgnoreCase(currentStatus);
 
         List<TaskVO> workList = project.getTasks().stream()
                 .map(task -> TaskVO.builder()
@@ -67,11 +77,11 @@ public class DetailServiceImpl implements DetailService {
                         .taskName(task.getTaskName())
                         .status(task.getStatus())
                         .isCompleted(task.getIsCompleted())
-
                         .assignedUserName(task.getAssignedUser().getDisplayName())
                         .build())
                 .collect(Collectors.toList());
 
+        /* 파일추가 기능 삭제
         List<FileVO> attachedFiles = fileRepository.findByProject_ProjectId(projectId).stream()
                 .map(fileEntity -> FileVO.builder()
                         .fileId(fileEntity.getFileId())
@@ -83,21 +93,23 @@ public class DetailServiceImpl implements DetailService {
                         .build())
                 .collect(Collectors.toList());
 
+         */
+
 
         return DetailVO.builder()
                 .projectId(project.getProjectId())
                 .title(project.getProjectTitle())
                 .description(project.getDescription())
-                .status(project.getStatus())
+                .status(currentStatus) // 💡 계산된 상태값 주입
                 .progressPercentage(progress)
-                .isChatActive(!isProjectCompleted)
-
+                .isChatActive(isChatEnabled) // 💡 진행중일때만 활성화
                 .ownerId(ownerId)
-
                 .managerName(managerName)
                 .coWorkers(coWorkers)
                 .workList(workList)
-                .attachedFiles(attachedFiles)
+                //.attachedFiles(attachedFiles)
+                .startDate(project.getStartDate()) // 💡 [추가]
+                .endDate(project.getEndDate())     // 💡 [추가]
                 .build();
     }
 

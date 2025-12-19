@@ -29,9 +29,29 @@ public class WriteController {
     @PostMapping("/projects")
     public ResponseEntity<Map<String, Object>> createProject(
             @RequestBody WriteVO projectCreateVO,
-            @RequestHeader("X-User-Id") Integer currentUserId) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader,  // ✅ Authorization 헤더 받기
+            @RequestHeader(value = "X-User-Id", required = false) Integer currentUserId) {  // ✅ 둘 다 optional로
 
-        // currentUserId가 null이면 예외 처리
+        // 1. JWT 토큰에서 userId 추출 시도
+        if (currentUserId == null && authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String token = authHeader.substring(7);
+                // 간단한 토큰 파싱 (실제로는 JwtTokenProvider 사용)
+                String[] parts = token.split("\\.");
+                if (parts.length >= 2) {
+                    String payload = new String(java.util.Base64.getDecoder().decode(parts[1]));
+                    java.util.Map<?, ?> claims = new com.fasterxml.jackson.databind.ObjectMapper()
+                            .readValue(payload, java.util.Map.class);
+                    if (claims.containsKey("userId")) {
+                        currentUserId = ((Number) claims.get("userId")).intValue();
+                    }
+                }
+            } catch (Exception e) {
+                // 토큰 파싱 실패
+            }
+        }
+
+        // 2. currentUserId가 여전히 null이면 예외 처리
         if (currentUserId == null) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -39,19 +59,19 @@ public class WriteController {
             return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
 
-        // 서비스 계층 호출
+        // 3. 서비스 계층 호출
         Integer createdProjectId = writeService.createProject(projectCreateVO, currentUserId);
 
         // Write.jsx에서 기대하는 응답 형식
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "프로젝트가 성공적으로 생성되었습니다.");
-        response.put("projectId", createdProjectId);  // Write.jsx에서 navigate(`/detail/${result.projectId}`) 사용
+        response.put("projectId", createdProjectId);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // 프로젝트 상세 조회 API - Write.jsx의 navigate 이후 사용될 것
+    // ✅ 프로젝트 상세 조회 API는 그대로
     @GetMapping("/projects/{id}")
     public ResponseEntity<ProjectVO> getProject(@PathVariable Integer id) {
         ProjectVO projectVO = writeService.getProjectById(id);
@@ -63,10 +83,10 @@ public class WriteController {
         return new ResponseEntity<>(projectVO, HttpStatus.OK);
     }
 
-    // 사용자 검색 API - Write.jsx의 handleSearch에서 호출됨
+    // ✅ 사용자 검색 API는 그대로 (인증 없이 접근 가능)
     @GetMapping("/users/search")
     public ResponseEntity<Map<String, Object>> searchUsers(
-            @RequestParam String query) {  // limit 파라미터 제거
+            @RequestParam String query) {
 
         List<UserVO> users = writeService.searchUsers(query);
 
@@ -76,7 +96,7 @@ public class WriteController {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ 새로운 API: 전체 사용자 목록 조회
+    // ✅ 전체 사용자 목록 조회 API는 그대로 (인증 없이 접근 가능)
     @GetMapping("/users")
     public ResponseEntity<Map<String, Object>> getAllUsers() {
         List<UserVO> users = writeService.getAllUsers();

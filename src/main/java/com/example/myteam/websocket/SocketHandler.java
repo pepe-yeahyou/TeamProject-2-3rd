@@ -9,6 +9,8 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
 import java.time.LocalDateTime;
 
 /**
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
  * ChatService를 주입받아 메시지를 DB에 트랜잭션 단위로 저장합니다.
  * /pub/chat/{projectId} 요청을 처리하고, /topic/projects/{projectId}로 브로드캐스팅합니다.
  */
+
 @Controller
 public class SocketHandler {
 
