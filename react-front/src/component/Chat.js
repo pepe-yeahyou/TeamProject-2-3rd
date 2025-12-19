@@ -116,12 +116,12 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
 
         // 서버의 ChatVO 필드명과 일치하도록 메시지 페이로드 구성
         const messagePayload = {
-            type: 'TALK', // 🚨 ChatVO Enum과 일치: 'CHAT' -> 'TALK'
+            type: 'TALK',
             projectId: projectId,
             senderId: currentUser.userId,
-            senderName: currentUser.userName,
-            messageContent: cleanedInputMessage, // 🚨 ChatVO 필드명: message -> messageContent
-            timestamp: new Date().toISOString() // 🚨 ChatVO 필드명: createdAt -> timestamp
+            displayName: currentUser.displayName, // 🚨 주신 UserVO/ChatVO에 있는 displayName을 추가!
+            messageContent: cleanedInputMessage,
+            timestamp: new Date().toISOString()
         };
 
         // 1. 서버로 STOMP PUBLISH 전송
@@ -192,7 +192,7 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
                                     
                                     {/* 이름과 시간 */}
                                     <div className="chat-sender-info">
-                                        <strong className="chat-sender">{msg.senderName}</strong>
+                                        <strong className="chat-sender">{msg.displayName}</strong>
                                         <span className="chat-time-inline">{time}</span> 
                                     </div>
 

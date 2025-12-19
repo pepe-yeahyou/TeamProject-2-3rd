@@ -1,13 +1,9 @@
 package com.example.myteam.service;
 
+import com.example.myteam.command.*;
 import com.example.myteam.repository.DetailRepository;
 import com.example.myteam.repository.TaskRepository;
 import com.example.myteam.repository.FileRepository;
-import com.example.myteam.command.DetailVO;
-import com.example.myteam.command.MemberVO;
-import com.example.myteam.command.TaskVO;
-import com.example.myteam.command.UpdateVO;
-import com.example.myteam.command.FileVO;
 import com.example.myteam.entity.Project;
 import com.example.myteam.entity.Task;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +118,7 @@ public class DetailServiceImpl implements DetailService {
         return 0;
     }
 
-    @Override
+    /*@Override
     @Transactional
     public void updateProject(Long projectId, UpdateVO request, Long currentUserId) {
         Optional<Project> optionalProject = detailRepository.findByProjectId(projectId);
@@ -139,6 +135,36 @@ public class DetailServiceImpl implements DetailService {
 
         project.setProjectTitle(request.getTitle());
         project.setDescription(request.getDescription());
+    }*/
+    @Override
+    @Transactional
+    public void updateProject(Long projectId, UpdateVO request, Long currentUserId) {
+        // 1. 프로젝트 조회
+        Optional<Project> optionalProject = detailRepository.findByProjectId(projectId);
+
+        if (!optionalProject.isPresent()) {
+            throw new RuntimeException("Project not found.");
+        }
+        Project project = optionalProject.get();
+
+        // 2. 프로젝트 작성자 권한 체크 (작성자 ID와 현재 로그인한 ID 비교)
+        if (project.getOwner().getUserId() != currentUserId) {
+            throw new SecurityException("수정 권한이 없습니다. (작성자만 수정 가능)");
+        }
+
+        // 3. UserVO에서 프로젝트 정보를 꺼내어 업데이트
+        // 만약 request.getProjectTitle()이 null이면 기존 제목을 유지하거나 "제목 없음"으로 처리
+        String newTitle = (request.getProjectTitle() != null) ? request.getProjectTitle() : project.getProjectTitle();
+        String newDescription = (request.getDescription() != null) ? request.getDescription() : project.getDescription();
+
+        project.setProjectTitle(newTitle);
+        project.setDescription(newDescription);
+
+        // 필요 시 날짜 등 추가 필드 업데이트
+        // project.setStartDate(request.getStartDate());
+        // project.setEndDate(request.getEndDate());
+
+        // @Transactional이 걸려있으므로 별도의 save 호출 없이 변경 감지(Dirty Checking)로 반영됩니다.
     }
 
     @Override

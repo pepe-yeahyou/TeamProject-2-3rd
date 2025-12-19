@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/write.css'
 import {useNavigate} from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Write = () => {
 
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     // 날짜 포맷팅 함수
     const formatDate = (date) => {
@@ -24,12 +26,13 @@ const Write = () => {
         endDate: formatDate(nextWeek)
     });
 
-    // 로그인된 사용자 정보
-    const [currentUser, setCurrentUser] = useState({
+    // JWT 토큰 기반 인증 상태
+    const [authState, setAuthState] = useState({
+        token: null,
         userId: null,
-        username: null,
         displayName: null,
-        isLoggedIn: false
+        username: null,
+        isAuthenticated: false
     });
 
     const [selectedMembers, setSelectedMembers] = useState(new Map());
@@ -44,43 +47,72 @@ const Write = () => {
     // ✅ 새로운 상태: 전체 사용자 로딩
     const [isLoadingAllUsers, setIsLoadingAllUsers] = useState(false);
 
-    // 컴포넌트 마운트 시 로그인 정보 불러오기
+    // 컴포넌트 마운트 시 JWT 토큰 확인
     useEffect(() => {
-        const userId = localStorage.getItem('currentUserId');
-        const username = localStorage.getItem('currentUsername');
-        const displayName = localStorage.getItem('currentDisplayName');
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const token = localStorage.getItem('jwt_token');
+        const displayName = localStorage.getItem('display_name');
 
-        if (isLoggedIn && userId) {
-            setCurrentUser({
-                userId: parseInt(userId),
-                username,
-                displayName,
-                isLoggedIn: true
-            });
+        if (token) {
+            // 토큰에서 정보 추출
+            try {
+                const tokenPayload = JSON.parse(atob(token.split('.')[1]));
 
-            // 로그인된 사용자를 selectedMembers에 추가 (팀장)
-            const newSelectedMembers = new Map();
-            newSelectedMembers.set(parseInt(userId), {
-                userId: parseInt(userId),
-                displayName: `${displayName} (나)`,
-                username: username,
-                isLeader: true
-            });
-            setSelectedMembers(newSelectedMembers);
+                setAuthState({
+                    token: token,
+                    userId: tokenPayload.userId,
+                    username: tokenPayload.sub || tokenPayload.username,
+                    displayName: displayName,
+                    isAuthenticated: true
+                });
 
-            // ✅ 전체 사용자 목록 불러오기
-            loadAllUsers();
+                // 로그인된 사용자를 selectedMembers에 추가 (팀장)
+                const newSelectedMembers = new Map();
+                newSelectedMembers.set(tokenPayload.userId, {
+                    userId: tokenPayload.userId,
+                    displayName: `${displayName} (나)`,
+                    username: tokenPayload.sub || tokenPayload.username,
+                    isLeader: true
+                });
+                setSelectedMembers(newSelectedMembers);
+
+                // ✅ token을 파라미터로 전달
+                loadAllUsers(token);
+
+            } catch (error) {
+                console.error('토큰 파싱 오류:', error);
+                handleLogout();
+            }
         } else {
-            alert('로그인이 필요합니다. 개발자도구 → Application → Local Storage에 로그인 정보를 추가해주세요.');
+            alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+            navigate('/login');
         }
     }, []);
 
-    // ✅ 전체 사용자 목록 불러오기 함수
-    const loadAllUsers = async () => {
+    // 로그아웃 처리 함수
+    const handleLogout = () => {
+        logout();
+
+        // 추가적인 상태 정리 (선택사항)
+        setAuthState({
+            token: null,
+            userId: null,
+            displayName: null,
+            username: null,
+            isAuthenticated: false
+        });
+
+        // 로그인 페이지로 이동
+        navigate('/login');
+    };
+
+    const loadAllUsers = async (token) => {
         setIsLoadingAllUsers(true);
         try {
-            const response = await fetch('/api/users');
+            const response = await fetch('/api/users', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (!response.ok) {
                 throw new Error('전체 사용자 목록 조회 실패');
             }
@@ -89,6 +121,7 @@ const Write = () => {
         } catch (error) {
             console.error('전체 사용자 목록 조회 에러:', error);
             alert('전체 사용자 목록을 불러오는데 실패했습니다.');
+            setAllUsers([]);
         } finally {
             setIsLoadingAllUsers(false);
         }
@@ -96,19 +129,34 @@ const Write = () => {
 
     // 선택된 멤버 수 계산 (본인 제외)
     const selectedMemberCount = Array.from(selectedMembers.keys())
-        .filter(id => id !== currentUser.userId).length;
+        .filter(id => id !== authState.userId).length;
 
-    // 사용자 검색 함수
+    // 사용자 검색 함수 (JWT 토큰 사용)
     const handleSearch = async () => {
         if (!searchQuery.trim()) {
             setSearchResults([]);
             return;
         }
 
+        if (!authState.token) {
+            alert('로그인이 필요합니다.');
+            navigate('/login');
+            return;
+        }
+
         setIsSearching(true);
 
         try {
-            const response = await fetch(`/api/users/search?query=${encodeURIComponent(searchQuery)}`);
+            const response = await fetch(`/api/users/search?query=${encodeURIComponent(searchQuery)}`, {
+                headers: {
+                    'Authorization': `Bearer ${authState.token}`
+                }
+            });
+
+            if (response.status === 401) {
+                handleLogout();
+                return;
+            }
 
             if (!response.ok) {
                 throw new Error('검색 요청 실패');
@@ -136,7 +184,7 @@ const Write = () => {
     // 팀원 선택/해제
     const toggleMemberSelection = (user) => {
         // 본인은 선택/해제 불가
-        if (user.userId === currentUser.userId) return;
+        if (user.userId === authState.userId) return;
 
         const newSelectedMembers = new Map(selectedMembers);
 
@@ -160,7 +208,7 @@ const Write = () => {
         if (!selectedUserId) return; // "선택해주세요" 옵션 선택 시 무시
 
         // 본인은 선택 불가
-        if (selectedUserId === currentUser.userId) return;
+        if (selectedUserId === authState.userId) return;
 
         // 이미 선택된 멤버인지 확인
         if (selectedMembers.has(selectedUserId)) {
@@ -189,7 +237,7 @@ const Write = () => {
     // 팀원 제거
     const removeMember = (userId) => {
         // 본인은 제거 불가
-        if (userId === currentUser.userId) return;
+        if (userId === authState.userId) return;
 
         const newSelectedMembers = new Map(selectedMembers);
         newSelectedMembers.delete(userId);
@@ -227,7 +275,7 @@ const Write = () => {
         setTasks(tasks.filter(task => task.id !== taskId));
     };
 
-    // 폼 제출 처리
+    // 폼 제출 처리 (JWT 토큰 사용)
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -237,18 +285,30 @@ const Write = () => {
         }
 
         // 1. 로그인 검증
-        if (!currentUser.isLoggedIn) {
+        if (!authState.isAuthenticated || !authState.token) {
             alert('로그인이 필요합니다.');
+            navigate('/login');
             return;
         }
 
-        // 2. 프로젝트 이름 검증
+        // 2. JWT 토큰에서 userId 추출
+        let userId;
+        try {
+            const tokenPayload = JSON.parse(atob(authState.token.split('.')[1]));
+            userId = tokenPayload.userId;
+        } catch (error) {
+            console.error('토큰 파싱 오류:', error);
+            alert('사용자 인증 정보를 확인할 수 없습니다.');
+            return;
+        }
+
+        // 3. 프로젝트 이름 검증
         if (!projectData.projectTitle.trim()) {
             alert('프로젝트 이름을 입력해주세요.');
             return;
         }
 
-        // 3. 날짜 검증
+        // 4. 날짜 검증
         const startDate = new Date(projectData.startDate);
         const endDate = new Date(projectData.endDate);
 
@@ -257,7 +317,7 @@ const Write = () => {
             return;
         }
 
-        // 4. 업무 검증 (수정된 부분!)
+        // 5. 업무 검증
         const emptyTasks = tasks.filter(task => !task.taskName.trim());
 
         if (emptyTasks.length > 0) {
@@ -265,7 +325,7 @@ const Write = () => {
             return;
         }
 
-        // 5. 최소 1개 업무 검증
+        // 6. 최소 1개 업무 검증
         if (tasks.length === 0) {
             alert('최소 1개 이상의 업무를 추가해주세요.');
             return;
@@ -284,14 +344,14 @@ const Write = () => {
         // ✅ 로딩 상태 시작
         setIsCreating(true);
 
-        // 데이터 준비 (빈 업무 필터링 제거 - 모든 업무 전송)
+        // 데이터 준비
         const invitedUserIds = Array.from(selectedMembers.keys())
-            .filter(id => id !== currentUser.userId);
+            .filter(id => id !== authState.userId);
 
         const initialTasks = tasks.map(task => ({
             taskName: task.taskName.trim(),
             description: '',
-            assignedUserId: task.assigneeId === currentUser.userId ? null : task.assigneeId
+            assignedUserId: task.assigneeId === authState.userId ? null : task.assigneeId
         }));
 
         const projectDataToSend = {
@@ -305,16 +365,22 @@ const Write = () => {
 
         console.log('전송할 데이터:', projectDataToSend);
 
-        // API 호출
+        // API 호출 (X-User-Id 헤더 추가)
         try {
             const response = await fetch('/api/projects', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-User-Id': currentUser.userId.toString()
+                    'Authorization': `Bearer ${authState.token}`,
                 },
                 body: JSON.stringify(projectDataToSend)
             });
+
+            if (response.status === 401) {
+                alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                handleLogout();
+                return;
+            }
 
             if (response.ok) {
                 const result = await response.json();
@@ -322,16 +388,13 @@ const Write = () => {
             } else {
                 const error = await response.text();
                 alert('서버 오류: ' + error);
-                // ✅ 에러 발생 시 로딩 상태 해제
                 setIsCreating(false);
             }
         } catch (error) {
             console.error('Error:', error);
             alert('서버 연결에 실패했습니다.');
-            // ✅ 에러 발생 시 로딩 상태 해제
             setIsCreating(false);
         }
-        // ✅ 성공 시에는 navigate로 이동하므로 setIsCreating 호출 불필요
     };
 
     // 담당자 옵션 생성
@@ -345,16 +408,16 @@ const Write = () => {
         });
 
         // 두 번째 옵션: 현재 로그인한 사용자 (팀장)
-        if (currentUser.userId) {
+        if (authState.userId) {
             options.push({
-                value: currentUser.userId,
-                label: `${currentUser.displayName} (나)`
+                value: authState.userId,
+                label: `${authState.displayName} (나)`
             });
         }
 
         // 세 번째 이후: 선택된 팀원들
         selectedMembers.forEach((member, id) => {
-            if (id !== currentUser.userId) {
+            if (id !== authState.userId) {
                 options.push({
                     value: id,
                     label: `${member.displayName}`
@@ -377,7 +440,7 @@ const Write = () => {
 
         // 본인을 제외한 모든 사용자 추가
         allUsers.forEach(user => {
-            if (user.userId !== currentUser.userId) {
+            if (user.userId !== authState.userId) {
                 options.push({
                     value: user.userId,
                     label: `${user.displayName} (@${user.username})`
@@ -393,10 +456,10 @@ const Write = () => {
         const members = [];
 
         selectedMembers.forEach((member, id) => {
-            if (id === currentUser.userId) {
+            if (id === authState.userId) {
                 members.push(
                     <div key={id}>
-                        나 ({currentUser.displayName}, 프로젝트 생성자, 팀장)
+                        나 ({authState.displayName}, 프로젝트 생성자, 팀장)
                     </div>
                 );
             } else {
@@ -415,25 +478,23 @@ const Write = () => {
         <>
             {/* 네비게이션 바 추가 */}
             <nav className="navbar">
-                <a href="/main" className="nav-brand">
+                <a href="/dashboard" className="nav-brand">
                     <div className="brand-icon">P</div>
                     <span>Project Manager</span>
                 </a>
 
-                {currentUser.isLoggedIn && (
+                {authState.isAuthenticated && (
                     <div className="user-info">
                         <div className="user-avatar">
-                            {currentUser.displayName?.substring(0, 2) || '??'}
+                            {authState.displayName?.substring(0, 2) || '??'}
                         </div>
                         <div className="user-details">
-                            <span className="user-name">{currentUser.displayName}</span>
+                            <span className="user-name">{authState.displayName}</span>
+                            <span className="user-username">@{authState.username}</span>
                         </div>
                         <button
                             className="logout-btn"
-                            onClick={() => {
-                                localStorage.clear();
-                                window.location.href = '/login';
-                            }}
+                            onClick={handleLogout}
                         >
                             로그아웃
                         </button>
@@ -563,7 +624,7 @@ const Write = () => {
                                             ) : (
                                                 searchResults.map(user => {
                                                     const isSelected = selectedMembers.has(user.userId);
-                                                    const isCurrentUser = user.userId === currentUser.userId;
+                                                    const isCurrentUser = user.userId === authState.userId;
                                                     return (
                                                         <div
                                                             key={user.userId}
@@ -628,8 +689,7 @@ const Write = () => {
                                                 </select>
 
                                                 <div className="select-info">
-                                                    <p>전체 회원 수: {allUsers.length}명</p>
-                                                    <p className="small-text">* 목록에서 선택 후 자동으로 추가됩니다</p>
+                                                    <p className="small-text">* 목록에서 선택 시 자동으로 추가됩니다</p>
                                                 </div>
                                             </>
                                         )}
@@ -710,7 +770,7 @@ const Write = () => {
                         <button
                             type="submit"
                             className={`btn btn-primary ${isCreating ? 'btn-loading' : ''}`}
-                            disabled={isCreating || !currentUser.isLoggedIn} // ✅ 로딩 중 or 로그인 안됨 시 비활성화
+                            disabled={isCreating || !authState.isAuthenticated} // ✅ 로딩 중 or 로그인 안됨 시 비활성화
                         >
                             {isCreating ? (
                                 <>
@@ -723,8 +783,8 @@ const Write = () => {
                         </button>
                     </form>
                 </div>
-                <a href="/main" className="back-link">
-                    메인 페이지로 이동
+                <a href="/dashboard" className="back-link">
+                    대시보드로 이동
                 </a>
             </div>
         </>

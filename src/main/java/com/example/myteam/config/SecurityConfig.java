@@ -50,12 +50,20 @@ public class SecurityConfig {
                         // 이 경로들은 무조건 통과
                         .requestMatchers("/login", "/register", "/h2-console/**", "/favicon.ico").permitAll()
                         .requestMatchers("/dashboard/**", "/detail/**").authenticated()
+                        .requestMatchers("/summery", "/projects/**", "/detail/**", "/api/projects/**").authenticated()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 );
 
-        // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 배치
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        // 3. JWT 인증 필터 적용
+        // UsernamePasswordAuthenticationFilter 이전에 커스텀 필터 실행
+        http.addFilterBefore(
+                new JwtAuthenticationFilter(jwtTokenProvider),
+                UsernamePasswordAuthenticationFilter.class
+        );
+
+        // H2 Console 사용을 위한 프레임 옵션 비활성화
+        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }

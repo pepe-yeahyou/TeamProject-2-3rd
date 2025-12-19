@@ -23,50 +23,51 @@ import java.time.LocalDateTime;
 public class SocketHandler {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final ChatService chatService; // 🚨 ChatService 필드 추가
+    private final ChatService chatService;
 
     public SocketHandler(SimpMessagingTemplate messagingTemplate, ChatService chatService) {
         this.messagingTemplate = messagingTemplate;
-        this.chatService = chatService; // 🚨 Service 객체 주입
+        this.chatService = chatService;
     }
 
     @MessageMapping("/chat/{projectId}")
-    public void handleChatMessage(
-            @DestinationVariable Integer projectId,
-            ChatVO message) {
-
+    public void handleChatMessage(@DestinationVariable Integer projectId, ChatVO message) {
         message.setProjectId(projectId);
+
+        if (message.getDisplayName() != null) {
+            message.setSenderName(message.getDisplayName());
+        }
+
         if (message.getTimestamp() == null) {
             message.setTimestamp(LocalDateTime.now());
         }
 
-        if (message.getType() == MessageType.ENTER) {
-            message.setMessageContent(message.getSenderName() + "님이 입장했습니다.");
-        } else if (message.getType() == MessageType.QUIT) {
-            message.setMessageContent(message.getSenderName() + "님이 퇴장했습니다.");
-        }
-
+        // DB 저장용 엔티티 변환 (기존 유지)
         Chat chatEntity = new Chat(
                 message.getProjectId(),
                 message.getSenderId(),
-                message.getSenderName(), // Transient
+                message.getSenderName(),
                 message.getMessageContent(),
-                message.getType() // Transient
+                message.getType()
         );
+        chatService.saveChatMessage(chatEntity);
 
-        Chat savedChat = chatService.saveChatMessage(chatEntity);
+        // 🚨 중요: 다시 프론트로 보낼 때 message 객체에 senderName(displayName)이 담겨 있어야 함
+        // 프론트 구독 경로: /sub/projects/{projectId} (WebSocketConfig 설정 기준)
+        messagingTemplate.convertAndSend("/sub/projects/" + projectId, message);
 
         // **로그 확인용**
-        System.out.println("[DB SAVE SUCCESS] Chat saved: ID=" + savedChat.getId() + ", Content=" + savedChat.getMessageContent());
+        //System.out.println("[DB SAVE SUCCESS] Chat saved: ID=" + savedChat.getId() + ", Content=" + savedChat.getMessageContent());
 
         System.out.println("🚨 [DEBUG BEFORE SAVE]");
         System.out.println("ID: " + chatEntity.getId()); // null (AUTO_INCREMENT)
         System.out.println("PROJECT_ID (INT): " + chatEntity.getProjectId());
         System.out.println("USER_ID (INT): " + chatEntity.getSenderId());
+        System.out.println("USER_Name (char): " + chatEntity.getSenderName());
         System.out.println("CONTENT: " + chatEntity.getMessageContent());
         System.out.println("TIMESTAMP: " + chatEntity.getTimestamp());
         System.out.println("🚨 [DEBUG BEFORE SAVE] (END)");
 
-        messagingTemplate.convertAndSend("/topic/projects/" + projectId, message);
+        messagingTemplate.convertAndSend("/sub/projects/" + projectId, message);
     }
 }
