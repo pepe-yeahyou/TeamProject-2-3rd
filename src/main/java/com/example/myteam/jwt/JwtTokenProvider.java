@@ -48,7 +48,18 @@ public class JwtTokenProvider {
 
     // 토큰 검증 로직 (JwtAuthenticationFilter에서 사용됨)
     public boolean validateToken(String token) {
-        return true;
+        //return true; //원본
+        //수정본
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (ExpiredJwtException e) {
+            // 토큰이 만료되었을 때 500 에러를 내지 않고 false만 리턴함
+            return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+
     }
 
     // 토큰에서 사용자 이름을 추출하는 로직 (JwtAuthenticationFilter에서 사용됨)

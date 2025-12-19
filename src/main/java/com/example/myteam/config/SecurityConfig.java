@@ -69,14 +69,14 @@ public class SecurityConfig {
                 // HTTP 요청 인가 규칙 설정
                 .authorizeHttpRequests(authorize -> authorize
                         // 1. 회원가입, 로그인 경로는 모두 허용 (명세서 일치)
-                        .requestMatchers("/register", "/login", "/h2-console/**").permitAll()
+                        .requestMatchers("/register", "/login", "/h2-console/**", "/**").permitAll()
 
                         // 2. 메인화면/프로젝트 관련 (명세서 경로 반영)
                         // 명세서에 /summery, /projects, /detail/** 등이 있으므로 이 주소들을 허용하거나 인증 설정
-                        .requestMatchers("/summery", "/projects/**", "/detail/**", "/api/projects/**").authenticated()
+                        //.requestMatchers("/summery", "/projects/**", "/detail/**", "/api/projects/**").authenticated()
 
                         // 3. 나머지 모든 요청은 인증 필요
-                        .anyRequest().authenticated()
+                        //.anyRequest().authenticated()
                 );
 
         // 3. JWT 인증 필터 적용

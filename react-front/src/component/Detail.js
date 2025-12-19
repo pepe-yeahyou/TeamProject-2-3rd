@@ -41,7 +41,14 @@ function Detail() {
     const fetchProjectDetail = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/${projectId}`);
+            const token = localStorage.getItem('token');
+
+            const response = await axios.get(`${API_BASE_URL}/${projectId}`, {
+                headers: {
+                    // 💡 서버의 JwtAuthenticationFilter가 인식할 수 있게 'Bearer '를 붙여줌
+                    Authorization: `Bearer ${token}` 
+                }
+            });
             setProject(response.data); 
             setError(null);
         } catch (err) {
@@ -56,20 +63,53 @@ function Detail() {
         fetchProjectDetail();
     }, [fetchProjectDetail]);
     
-    const handleProgressUpdate = async (newProgress) => {
+    /*const handleProgressUpdate = async (newProgress) => {
         if (!isProjectManager) return; 
         try {
             await axios.post(`${API_BASE_URL}/${projectId}`, { ...project, progress: newProgress }); 
         } catch (err) {
             console.error('진척도 업데이트 실패:', err);
         }
+    };*/
+    const handleProgressUpdate = async (newProgress) => {
+        if (!isProjectManager) return; 
+        try {
+            const token = localStorage.getItem('token');
+            const updatePayload = {
+                projectTitle: project.title,
+                description: project.description,
+                startDate: project.startDate,
+                endDate: project.endDate,
+                coWorkers: project.coWorkers || [], 
+                workList: project.workList || [],
+                managerName: project.managerName
+            };
+
+            await axios.post(`${API_BASE_URL}/${projectId}`, updatePayload, {
+                headers: { Authorization: `Bearer ${token}` }
+            }); 
+        } catch (err) {
+            console.error('진척도 업데이트 실패:', err);
+        }
     };
+
 
     const handleEditClick = () => {
         if (!project || !hasEditPermission) return alert('프로젝트 수정 권한이 없거나 데이터 로딩 중입니다.');
+        
+        // 백엔드 UpdateVO 구조와 일치하도록 데이터 매핑
+        const projectDataForUpdate = {
+            projectId: project.projectId,     // 수정 대상 ID
+            projectTitle: project.title,      // project.title을 projectTitle로 매칭
+            description: project.description,
+            startDate: project.startDate,
+            endDate: project.endDate,
+            // 추가적인 필드가 있다면 여기에 포함
+        };
+
         navigate('/write', { 
             state: { 
-                projectData: project,
+                projectData: projectDataForUpdate,
                 isEditMode: true 
             } 
         });

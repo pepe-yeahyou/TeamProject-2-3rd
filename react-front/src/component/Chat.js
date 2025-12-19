@@ -11,7 +11,6 @@ const WS_BASE_URL = 'http://localhost:8484/api/chat';
 function Chat( {projectId, isChatEnabled, currentUser} ) {
     
     // --- 1. 상태 및 Ref 정의 ---
-    // 기존 socketRef는 STOMP 클라이언트가 대체합니다.
     const [message, setMessage]=useState(''); 
     const [messageList,setMessageList]=useState([]); 
     const messagesEndRef = useRef(null); 
@@ -96,7 +95,7 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
             setIsConnected(false);
         }
 
-    }, [projectId, isChatEnabled, currentUser.userId, currentUser.userName]);
+    }, [projectId, isChatEnabled, currentUser.userId, currentUser.displayName]); // currentUser.userName에서 displayName으로 변경
 
 
     // --- 3. 메시지 전송 로직 (STOMP 적용) ---
@@ -116,12 +115,12 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
 
         // 서버의 ChatVO 필드명과 일치하도록 메시지 페이로드 구성
         const messagePayload = {
-            type: 'TALK', // 🚨 ChatVO Enum과 일치: 'CHAT' -> 'TALK'
+            type: 'TALK', 
             projectId: projectId,
             senderId: currentUser.userId,
-            senderName: currentUser.userName,
-            messageContent: cleanedInputMessage, // 🚨 ChatVO 필드명: message -> messageContent
-            timestamp: new Date().toISOString() // 🚨 ChatVO 필드명: createdAt -> timestamp
+            senderName: currentUser.displayName, // 🚨 userName 대신 displayName 사용
+            messageContent: cleanedInputMessage, 
+            timestamp: new Date().toISOString() 
         };
 
         // 1. 서버로 STOMP PUBLISH 전송
@@ -132,7 +131,6 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
         });
         
         // 2. 자신이 보낸 메시지를 즉시 messageList에 추가 (낙관적 업데이트)
-        // 렌더링에 필요한 필드명으로 변환
         const displayPayload = {
             ...messagePayload,
             message: messagePayload.messageContent,
@@ -154,7 +152,7 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
         }
     }
     
-    // --- 4. 렌더링 (기존과 동일) ---
+    // --- 4. 렌더링 ---
     if (!isChatEnabled) {
         return (
              <div className="text-center p-4 border rounded bg-gray-100 text-gray-600">
@@ -192,6 +190,7 @@ function Chat( {projectId, isChatEnabled, currentUser} ) {
                                     
                                     {/* 이름과 시간 */}
                                     <div className="chat-sender-info">
+                                        {/* 🚨 msg.senderName에 담긴 displayName이 출력됨 */}
                                         <strong className="chat-sender">{msg.senderName}</strong>
                                         <span className="chat-time-inline">{time}</span> 
                                     </div>

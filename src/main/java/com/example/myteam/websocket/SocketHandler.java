@@ -36,28 +36,40 @@ public class SocketHandler {
             ChatVO message) {
 
         message.setProjectId(projectId);
+
+        // 🚨 프론트에서 displayName을 보냈는데 senderName이 비어있을 경우를 대비한 보정
+        if (message.getSenderName() == null) {
+            message.setSenderName(message.getDisplayName());
+        }
+
         if (message.getTimestamp() == null) {
             message.setTimestamp(LocalDateTime.now());
         }
 
+        // 입장/퇴장 메시지 처리 시에도 displayName(또는 senderName) 사용
         if (message.getType() == MessageType.ENTER) {
             message.setMessageContent(message.getSenderName() + "님이 입장했습니다.");
         } else if (message.getType() == MessageType.QUIT) {
             message.setMessageContent(message.getSenderName() + "님이 퇴장했습니다.");
         }
 
+        // DB 저장용 Entity 생성 (기존 유지)
         Chat chatEntity = new Chat(
                 message.getProjectId(),
                 message.getSenderId(),
-                message.getSenderName(), // Transient
+                message.getSenderName(), // DB의 Transient 필드 혹은 로그용
                 message.getMessageContent(),
-                message.getType() // Transient
+                message.getType()
         );
 
-        Chat savedChat = chatService.saveChatMessage(chatEntity);
+        chatService.saveChatMessage(chatEntity);
+
+        // 🚨 중요: 다시 프론트로 보낼 때 message 객체에 senderName(displayName)이 담겨 있어야 함
+        // 프론트 구독 경로: /sub/projects/{projectId} (WebSocketConfig 설정 기준)
+        messagingTemplate.convertAndSend("/sub/projects/" + projectId, message);
 
         // **로그 확인용**
-        System.out.println("[DB SAVE SUCCESS] Chat saved: ID=" + savedChat.getId() + ", Content=" + savedChat.getMessageContent());
+        //System.out.println("[DB SAVE SUCCESS] Chat saved: ID=" + savedChat.getId() + ", Content=" + savedChat.getMessageContent());
 
         System.out.println("🚨 [DEBUG BEFORE SAVE]");
         System.out.println("ID: " + chatEntity.getId()); // null (AUTO_INCREMENT)

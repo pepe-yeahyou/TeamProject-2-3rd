@@ -25,7 +25,7 @@ import java.util.Optional;
 public class DetailController {
 
     private final DetailService detailService;
-    private final Path fileStorageLocation = Paths.get("./uploads").toAbsolutePath().normalize();
+    //private final Path fileStorageLocation = Paths.get("./uploads").toAbsolutePath().normalize();
 
     @Autowired
     public DetailController(DetailService detailService) {
@@ -56,7 +56,7 @@ public class DetailController {
      * - 수정: Body에 UpdateVO 포함
      * - 삭제: Query Param 'operation=DELETE' 사용
      */
-    @PostMapping("/{projectId}")
+    /*@PostMapping("/{projectId}")
     public ResponseEntity<String> handleProjectModification(
             @PathVariable Long projectId,
             // @RequestBody(required = false)로 설정하여 수정 데이터가 없으면 삭제 요청으로 간주
@@ -78,6 +78,32 @@ public class DetailController {
         }
 
         return ResponseEntity.badRequest().body("Invalid request. Specify operation=DELETE or provide update data.");
+    }*/
+    @PostMapping("/{projectId}")
+    public ResponseEntity<String> handleProjectModification(
+            @PathVariable Long projectId,
+            @RequestBody(required = false) UpdateVO request,
+            @RequestParam(required = false) String operation) {
+
+        Long currentUserId = 1L;
+
+        if ("DELETE".equalsIgnoreCase(operation)) {
+            detailService.deleteProject(projectId, currentUserId);
+            return ResponseEntity.ok("Project Deleted.");
+        }
+
+        if (request != null) {
+            // UserVO에 추가한 projectTitle 필드를 사용
+            if (request.getProjectTitle() == null || request.getProjectTitle().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("제목이 비어있어 수정을 진행할 수 없습니다.");
+            }
+
+            // Service에도 UserVO를 전달하도록 수정 필요
+            detailService.updateProject(projectId, request, currentUserId);
+            return ResponseEntity.ok("Project Updated using UserVO.");
+        }
+
+        return ResponseEntity.badRequest().body("Invalid Request.");
     }
 
     // ---------------------- 3. 작업 목록 및 상태 변경 API ----------------------
