@@ -34,14 +34,14 @@ function Detail() {
 
     /* ✅ 실제 로그인 유저 정보 추출 (서버 DB의 유저 ID와 타입 일치 필수) */
     const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
-    
+
     const currentUser = useMemo(() => {
         const decodedToken = token ? parseJwt(token) : null;
         if (!decodedToken) return null;
 
         return {
             // 서버 DB가 ID 7을 보낸다면, 여기서도 숫자 7이어야 함 (decodedToken의 ID 키값을 확인하세요)
-            userId: decodedToken.userId ? Number(decodedToken.userId) : Number(decodedToken.id), 
+            userId: decodedToken.userId ? Number(decodedToken.userId) : Number(decodedToken.id),
             userName: decodedToken.sub,
             displayName: localStorage.getItem('display_name') || "익명",
             isLoggedIn: true,
@@ -55,11 +55,11 @@ function Detail() {
     // 💡 권한 체크 변수들
     const isExpired = project?.endDate && new Date(project.endDate) < new Date().setHours(0, 0, 0, 0);
     const coWorkers = project?.coWorkers || [];
-    
+
     // 타입 불일치 방지를 위해 Number() 처리
     const isProjectManager = project && currentUser && Number(project.ownerId) === currentUser.userId;
     const isCoWorker = currentUser && coWorkers.some(worker => Number(worker.userId) === currentUser.userId);
-    
+
     const hasTaskPermission = (isProjectManager || isCoWorker) && !isExpired;
     const hasEditPermission = isProjectManager;
 
@@ -97,7 +97,7 @@ function Detail() {
                 coWorkers: project.coWorkers || [],
                 workList: project.workList || [],
                 managerName: project.managerName,
-                progress: newProgress 
+                progress: newProgress
             };
 
             await axios.post(`${API_BASE_URL}/${projectId}`, updatePayload, {
@@ -146,7 +146,7 @@ function Detail() {
 
     const handleTaskStatusToggle = async (taskId, currentStatus) => {
         if (isExpired) return alert('기간이 만료된 프로젝트는 수정할 수 없습니다.');
-        
+
         // 현재 로컬에서 판단하는 권한 체크 (서버 SecurityException 방어)
         if (!hasTaskPermission) {
             console.log("현재 접속 유저 ID:", currentUser?.userId);
@@ -154,22 +154,22 @@ function Detail() {
             console.log("협업자 여부:", isCoWorker);
             return alert('작업 상태 변경 권한이 없습니다. (담당자 또는 협업자만 가능)');
         }
-        
-        const isCompleted = currentStatus !== 'COMPLETED'; 
+
+        const isCompleted = currentStatus !== 'COMPLETED';
         if (!window.confirm(`작업 상태를 변경하시겠습니까?`)) return;
 
         try {
             // ✅ 서버 컨트롤러가 요구하는 형식: @PostMapping("/{projectId}/task/{taskId}")
             await axios.post(
-                `${API_BASE_URL}/${projectId}/task/${taskId}?isCompleted=${isCompleted}`, 
-                {}, 
+                `${API_BASE_URL}/${projectId}/task/${taskId}?isCompleted=${isCompleted}`,
+                {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
             // 로컬 상태 업데이트
-            const newWorkList = (project.workList || []).map(task => 
-                task.taskId === taskId 
-                    ? { ...task, status: isCompleted ? 'COMPLETED' : 'IN_PROGRESS' } 
+            const newWorkList = (project.workList || []).map(task =>
+                task.taskId === taskId
+                    ? { ...task, status: isCompleted ? 'COMPLETED' : 'IN_PROGRESS' }
                     : task
             );
 
@@ -179,10 +179,10 @@ function Detail() {
                  await handleProgressUpdate(newProgress);
             }
 
-            setProject(prevProject => ({ 
-                ...prevProject, 
+            setProject(prevProject => ({
+                ...prevProject,
                 workList: newWorkList,
-                progressPercentage: newProgress 
+                progressPercentage: newProgress
             }));
 
         } catch (err) {

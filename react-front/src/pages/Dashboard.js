@@ -12,7 +12,7 @@ function DashboardPage() {
     
     // 새 프로젝트 버튼 핸들러
     const handleNewProjectClick = () => {
-        // navigate(`/api/projects/${userId}`);
+        navigate('/write');
     };
 
     if (loading) return <div>로딩 중...</div>; // (선택: 스켈레톤 UI로 대체 가능)
