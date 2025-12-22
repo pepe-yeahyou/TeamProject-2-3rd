@@ -6,7 +6,6 @@ import Register from './pages/Register';
 import useAuth from './hooks/useAuth';
 import React from 'react';
 import Detail from './component/Detail';
-//import Write from "./pages/Write";
 import Write from "./component/Write";
 
 function App() {
@@ -25,14 +24,15 @@ function App() {
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
         />
 
-        <Route path={'/write'} element={<Write/>}/>
-        <Route path={'/detail/:projectId'} element={<Detail/>}/>
+        <Route 
+          path="/write"
+          element={isAuthenticated ? <Write /> : <Navigate to="/login" />}
+        />
 
-        {/* 1. 프로젝트 생성(글쓰기) 페이지 연결 */}
-        {/* <Route path="/api/projects/:userId" element={<ProjectCreate />} /> */}
-
-        {/* 2. 프로젝트 상세 페이지 연결 */}
-        {/* <Route path="/detail/:projectId" element={<ProjectDetail />} /> */}
+        <Route 
+          path="/detail/:projectId"
+          element={isAuthenticated ? <Detail /> : <Navigate to="/login" />}
+        />
 
         {/* 기본 경로 설정 */}
         <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
