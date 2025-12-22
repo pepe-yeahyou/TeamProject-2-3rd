@@ -5,11 +5,12 @@ import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
 import useAuth from './hooks/useAuth';
 import React from 'react';
-import Detail from './component/Detail'; // 상세 페이지 컴포넌트
-import Write from "./pages/Write";      // 생성 페이지 컴포넌트
+import Detail from './component/Detail';
+//import Write from "./pages/Write";
+import Write from "./component/Write";
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth(); // 인증 여부 확인
 
   return (
     <Router>
@@ -18,24 +19,21 @@ function App() {
         <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
         <Route path="/register" element={<Register />} />
         
-        {/* 대시보드 (로그인한 사람만) */}
+        {/* 대시보드 (인증 필수) */}
         <Route 
           path="/dashboard" 
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
         />
 
-        {/* 1. 프로젝트 생성 페이지: /write 로 접속 시 Write 컴포넌트 실행 */}
-        <Route 
-          path="/write" 
-          element={isAuthenticated ? <Write /> : <Navigate to="/login" />} 
-        />
+        <Route path={'/write'} element={<Write/>}/>
+        <Route path={'/detail/:projectId'} element={<Detail/>}/>
 
-        {/* 2. 프로젝트 상세 페이지: /detail/123 형식으로 접속 시 Detail 컴포넌트 실행 */}
-        <Route 
-          path="/detail/:projectId" 
-          element={isAuthenticated ? <Detail /> : <Navigate to="/login" />} 
-        />
-        
+        {/* 1. 프로젝트 생성(글쓰기) 페이지 연결 */}
+        {/* <Route path="/api/projects/:userId" element={<ProjectCreate />} /> */}
+
+        {/* 2. 프로젝트 상세 페이지 연결 */}
+        {/* <Route path="/detail/:projectId" element={<ProjectDetail />} /> */}
+
         {/* 기본 경로 설정 */}
         <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
       </Routes>

@@ -1,13 +1,17 @@
 package com.example.myteam.command;
 
-import lombok.Builder;
-import lombok.Data; // @Data 사용
+import lombok.AllArgsConstructor;
+import lombok.Builder; // 추가
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder // 이거 넣어라
 public class MemberVO {
-    private Long userId;
+    private int userId;
     private String displayName;
     private boolean isLeader;
     private LocalDateTime joinedAt;

@@ -43,7 +43,7 @@ function Detail() {
             // 서버 DB가 ID 7을 보낸다면, 여기서도 숫자 7이어야 함 (decodedToken의 ID 키값을 확인하세요)
             userId: decodedToken.userId ? Number(decodedToken.userId) : Number(decodedToken.id),
             userName: decodedToken.sub,
-            displayName: localStorage.getItem('displayName') || "사용자",
+            displayName: localStorage.getItem('display_name') || "익명",
             isLoggedIn: true,
         };
     }, [token]);
