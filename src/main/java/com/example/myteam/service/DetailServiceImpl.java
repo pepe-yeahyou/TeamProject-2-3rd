@@ -4,14 +4,18 @@ import com.example.myteam.command.*;
 import com.example.myteam.repository.DetailRepository;
 import com.example.myteam.repository.TaskRepository;
 import com.example.myteam.repository.FileRepository;
+import com.example.myteam.repository.UserRepository; // 유저 조회를 위해 추가
 import com.example.myteam.entity.Project;
 import com.example.myteam.entity.Task;
+import com.example.myteam.entity.Member;
+import com.example.myteam.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,14 +26,17 @@ public class DetailServiceImpl implements DetailService {
     private final DetailRepository detailRepository;
     private final TaskRepository taskRepository;
     private final FileRepository fileRepository;
+    private final UserRepository userRepository; // 💡 에러 해결을 위해 필드 유지
 
     @Autowired
     public DetailServiceImpl(DetailRepository detailRepository,
                              TaskRepository taskRepository,
-                             FileRepository fileRepository) { // 💡 2. 생성자 주입
+                             FileRepository fileRepository,
+                             UserRepository userRepository) { // 💡 생성자 주입 유지
         this.detailRepository = detailRepository;
         this.taskRepository = taskRepository;
         this.fileRepository = fileRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -49,7 +56,7 @@ public class DetailServiceImpl implements DetailService {
                 .map(member -> MemberVO.builder()
                         .userId(member.getUser().getUserId().intValue())
                         .displayName(member.getUser().getDisplayName())
-                        .isLeader(false)
+                        .isLeader(member.getIsLeader() != null ? member.getIsLeader() : false)
                         .joinedAt(member.getJoinedAt())
                         .build())
                 .collect(Collectors.toList());
@@ -70,6 +77,7 @@ public class DetailServiceImpl implements DetailService {
         List<TaskVO> workList = project.getTasks().stream()
                 .map(task -> TaskVO.builder()
                         .taskId(task.getTaskId().intValue())
+                        .userId(task.getAssignedUser().getUserId().intValue()) // 💡 TaskVO 참조
                         .taskName(task.getTaskName())
                         .status(task.getStatus())
                         .isCompleted(task.getIsCompleted())
@@ -118,69 +126,105 @@ public class DetailServiceImpl implements DetailService {
         return 0;
     }
 
-    /*@Override
-    @Transactional
-    public void updateProject(Long projectId, UpdateVO request, Long currentUserId) {
-        Optional<Project> optionalProject = detailRepository.findByProjectId(projectId);
-
-        if (!optionalProject.isPresent()) {
-            throw new RuntimeException("Project not found.");
-        }
-        Project project = optionalProject.get();
-
-        // 2. 프로젝트 수정/삭제는 프로젝트 작성자만 진행한다 (권한 체크)
-        if (!project.getOwner().getUserId().equals(currentUserId)) {
-            throw new SecurityException("수정 권한이 없습니다. (작성자만 수정 가능)");
-        }
-
-        project.setProjectTitle(request.getTitle());
-        project.setDescription(request.getDescription());
-    }*/
     @Override
     @Transactional
     public void updateProject(Long projectId, UpdateVO request, Long currentUserId) {
-        // 1. 프로젝트 조회
-        Optional<Project> optionalProject = detailRepository.findByProjectId(projectId);
+        // 1. 프로젝트 조회 및 권한 체크
+        Project project = detailRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found."));
 
-        if (!optionalProject.isPresent()) {
-            throw new RuntimeException("Project not found.");
-        }
-        Project project = optionalProject.get();
-
-        // 2. 프로젝트 작성자 권한 체크 (작성자 ID와 현재 로그인한 ID 비교)
-        if (project.getOwner().getUserId() != currentUserId) {
-            throw new SecurityException("수정 권한이 없습니다. (작성자만 수정 가능)");
+        if (!project.getOwner().getUserId().equals(currentUserId)) {
+            throw new SecurityException("수정 권한이 없습니다.");
         }
 
-        // 3. UserVO에서 프로젝트 정보를 꺼내어 업데이트
-        // 만약 request.getProjectTitle()이 null이면 기존 제목을 유지하거나 "제목 없음"으로 처리
-        String newTitle = (request.getProjectTitle() != null) ? request.getProjectTitle() : project.getProjectTitle();
-        String newDescription = (request.getDescription() != null) ? request.getDescription() : project.getDescription();
+        // 2. 기본 정보 업데이트
+        if (request.getProjectTitle() != null) project.setProjectTitle(request.getProjectTitle());
+        if (request.getDescription() != null) project.setDescription(request.getDescription());
+        if (request.getStartDate() != null) project.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) project.setEndDate(request.getEndDate());
+        project.setUpdatedAt(LocalDateTime.now());
 
-        project.setProjectTitle(newTitle);
-        project.setDescription(newDescription);
+        // 3. 협업자(Member) 수정 로직 (교집합 유지 방식 - Duplicate Entry 해결)
+        if (request.getMemberList() != null) {
+            // A. 요청으로 들어온 유저 ID 리스트 (중복 제거)
+            List<Long> incomingUserIds = request.getMemberList().stream()
+                    .map(m -> (long) m.getUserId())
+                    .distinct()
+                    .collect(Collectors.toList());
 
-        // 필요 시 날짜 등 추가 필드 업데이트
-        // project.setStartDate(request.getStartDate());
-        // project.setEndDate(request.getEndDate());
+            // B. 삭제할 멤버 처리: 기존 멤버 중 요청 리스트에 없는 사람만 제거
+            project.getMembers().removeIf(existingMember ->
+                    !incomingUserIds.contains(existingMember.getUser().getUserId())
+            );
 
-        // @Transactional이 걸려있으므로 별도의 save 호출 없이 변경 감지(Dirty Checking)로 반영됩니다.
+            // C. 추가할 멤버 처리: 요청 리스트 중 현재 프로젝트 멤버에 없는 사람만 추가
+            List<Long> currentMemberUserIds = project.getMembers().stream()
+                    .map(m -> m.getUser().getUserId())
+                    .collect(Collectors.toList());
+
+            for (Long userId : incomingUserIds) {
+                if (!currentMemberUserIds.contains(userId)) {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+                    Member newMember = new Member();
+                    newMember.setProject(project);
+                    newMember.setUser(user);
+                    newMember.setIsLeader(false);
+                    newMember.setJoinedAt(LocalDateTime.now());
+                    project.getMembers().add(newMember);
+                }
+            }
+        }
+
+        // 4. 할 일(Task) 수정 로직 (최종 해결판)
+        // 4. 할 일(Task) 수정 로직 (이게 진짜 최종입니다)
+        if (request.getTaskList() != null) {
+
+            // 1) Repository를 통해 DB에서 직접 물리 삭제 (로그에 찍힌 그 쿼리!)
+            taskRepository.deleteByProjectIdDirectly(projectId);
+
+            // ❌ project.getTasks().clear();  <-- 이 줄을 반드시 지우세요! (에러 원인)
+
+            // 2) 새로 들어온 할 일들만 생성해서 채우기
+            for (UpdateVO.TaskUpdateDTO tDto : request.getTaskList()) {
+                if (tDto.getTaskName() == null || tDto.getTaskName().trim().isEmpty()) continue;
+
+                Long assignedId = (tDto.getUserId() == null || tDto.getUserId() <= 0)
+                        ? project.getOwner().getUserId()
+                        : tDto.getUserId();
+
+                User assignedUser = userRepository.findById(assignedId)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + assignedId));
+
+                Task newTask = new Task();
+                newTask.setTaskName(tDto.getTaskName());
+                newTask.setProject(project);
+                newTask.setAssignedUser(assignedUser);
+                newTask.setStatus("IN_PROGRESS");
+                newTask.setIsCompleted(false);
+                newTask.setCreatedAt(LocalDateTime.now());
+
+                // 💡 리스트에 바로 담지 말고, 저장(Save)이 필요할 수 있으니 안전하게 처리
+                taskRepository.save(newTask);
+            }
+        }
     }
 
     @Override
     @Transactional
     public void deleteProject(Long projectId, Long currentUserId) {
-        Optional<Project> optionalProject = detailRepository.findByProjectId(projectId);
+        // 1. 기존 메서드 사용 (detailRepository 내 findByProjectId 유지)
+        Project project = detailRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found."));
 
-        if (!optionalProject.isPresent()) {
-            throw new RuntimeException("Project not found.");
-        }
-        Project project = optionalProject.get();
-
+        // 2. 권한 검사 (타입 불일치 방지를 위해 longValue() 또는 equals 사용)
+        // project.getOwner().getUserId()와 currentUserId가 둘 다 Long 객체라면 equals가 정확함
         if (!project.getOwner().getUserId().equals(currentUserId)) {
             throw new SecurityException("삭제 권한이 없습니다. (작성자만 삭제 가능)");
         }
 
+        // 3. 삭제 처리 (있는 메서드 deleteById 사용)
         detailRepository.deleteById(projectId);
     }
 
@@ -220,6 +264,7 @@ public class DetailServiceImpl implements DetailService {
         String newStatus = isCompleted ? "COMPLETED" : "IN_PROGRESS";
         task.setIsCompleted(isCompleted);
         task.setStatus(newStatus);
+        task.setUpdatedAt(LocalDateTime.now());
 
         taskRepository.save(task);
     }
