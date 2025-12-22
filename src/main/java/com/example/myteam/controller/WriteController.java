@@ -26,7 +26,7 @@ public class WriteController {
     }
 
     // 프로젝트 생성 API - Write.jsx의 handleSubmit에서 호출됨
-    @PostMapping("/projects/{userId}")
+    @PostMapping("/projects")
     public ResponseEntity<Map<String, Object>> createProject(
             @RequestBody WriteVO projectCreateVO,
             @RequestHeader(value = "Authorization", required = false) String authHeader,  // ✅ Authorization 헤더 받기
