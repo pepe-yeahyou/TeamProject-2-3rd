@@ -1,14 +1,24 @@
 package com.example.myteam.command;
 
 import lombok.Data;
-
 import java.time.LocalDate;
+import java.util.List;
 
-@Data // @Getter, @Setter 등을 대체
+@Data
 public class UpdateVO {
-    // --- 프로젝트 수정을 위해 추가하는 필드 ---
     private String projectTitle;
     private String description;
     private LocalDate startDate;
     private LocalDate endDate;
+    private List<MemberUpdateDTO> memberList;
+    private List<TaskUpdateDTO> taskList;
+    @Data
+    public static class MemberUpdateDTO {
+        private Long userId;
+    }
+    @Data
+    public static class TaskUpdateDTO {
+        private String taskName;
+        private Long userId;
+    }
 }

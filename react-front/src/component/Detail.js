@@ -108,6 +108,7 @@ function Detail() {
         }
     };
 
+    /* ✅ 수정 버튼 클릭 시 데이터를 Write.js의 필드명에 맞춰서 정확히 전달 */
     const handleEditClick = () => {
         if (!project || !hasEditPermission)
             return alert('프로젝트 수정 권한이 없거나 데이터 로딩 중입니다.');
@@ -116,10 +117,12 @@ function Detail() {
             state: {
                 projectData: {
                     projectId: project.projectId,
-                    projectTitle: project.title,
+                    projectTitle: project.title, // Write.js에서 formData.projectTitle로 쓰려면 키값을 맞춰야 함
                     description: project.description,
                     startDate: project.startDate,
                     endDate: project.endDate,
+                    coWorkers: project.coWorkers || [],
+                    workList: project.workList || []
                 },
                 isEditMode: true,
             },

@@ -1,12 +1,21 @@
 package com.example.myteam.controller;
 
+import com.example.myteam.jwt.JwtTokenProvider;
 import com.example.myteam.service.DetailService;
 import com.example.myteam.command.DetailVO; // ProjectDetailVO -> DetailVO
 import com.example.myteam.command.UpdateVO; // ProjectUpdateRequest -> UpdateVO
 import com.example.myteam.command.FileVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest; // 💡 추가
+import org.springframework.beans.factory.annotation.Value; // 💡 추가
+
 import org.springframework.core.io.Resource; // 💡 Resource import
 import org.springframework.core.io.UrlResource; // 💡 UrlResource import
 import org.springframework.http.HttpHeaders; // 💡 HttpHeaders import
@@ -26,6 +35,8 @@ public class DetailController {
 
     private final DetailService detailService;
     //private final Path fileStorageLocation = Paths.get("./uploads").toAbsolutePath().normalize();
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider; // 토큰 파싱을 위해 주입 필요
 
     @Autowired
     public DetailController(DetailService detailService) {
@@ -46,11 +57,53 @@ public class DetailController {
     // ---------------------- 2. 프로젝트 수정/삭제 API ----------------------
 
     // 임시 사용자 ID 획득 메서드 (Security 구현 시 대체 필요)
+    // DetailController.java
+
+    @Value("${jwt.secret}")
+    private String secretKey; // 설정파일의 시크릿키 직접 사용
+
+    @Autowired
+    private HttpServletRequest httpServletRequest; // 💡 요청 객체 주입
+
     private Long getCurrentUserIdFromContext() {
-        // 실제로는 Spring Security를 통해 인증된 사용자 ID를 반환해야 합니다.
-        // 이 ID는 수정/삭제 권한 체크 (작성자 여부 확인)에 사용됩니다.
-        return 1L;
+        // 1. 헤더에서 직접 Authorization 토큰 추출
+        String bearerToken = httpServletRequest.getHeader("Authorization");
+
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            throw new SecurityException("토큰이 헤더에 없거나 형식이 잘못되었습니다.");
+        }
+
+        String token = bearerToken.substring(7); // "Bearer " 제거
+
+        try {
+            // 2. JwtTokenProvider와 동일한 키로 직접 파싱
+            byte[] keyBytes = secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            java.security.Key key = io.jsonwebtoken.security.Keys.hmacShaKeyFor(keyBytes);
+
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            // 3. 님이 찾으시는 그 "userId" 꺼내기
+            Object userIdObj = claims.get("userId");
+
+            if (userIdObj == null) {
+                throw new SecurityException("토큰 내부에 userId claim이 없습니다.");
+            }
+
+            // 타입 변환 (Integer로 올 수 있으니 Number로 안전하게 처리)
+            if (userIdObj instanceof Number) {
+                return ((Number) userIdObj).longValue();
+            }
+            return (Long) userIdObj;
+
+        } catch (Exception e) {
+            throw new SecurityException("토큰에서 userId 추출 실패: " + e.getMessage());
+        }
     }
+
     /**
      * [API] 프로젝트 수정/삭제 처리 (POST /detail/{projectId})
      * - 수정: Body에 UpdateVO 포함
@@ -85,7 +138,7 @@ public class DetailController {
             @RequestBody(required = false) UpdateVO request,
             @RequestParam(required = false) String operation) {
 
-        Long currentUserId = 1L;
+        Long currentUserId = getCurrentUserIdFromContext();
 
         if ("DELETE".equalsIgnoreCase(operation)) {
             detailService.deleteProject(projectId, currentUserId);

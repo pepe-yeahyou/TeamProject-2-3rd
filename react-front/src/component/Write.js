@@ -1,18 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../css/write.css'; 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; 
 import { useAuth } from "../context/AuthContext";
 
 const Write = () => {
     const navigate = useNavigate();
+    const location = useLocation(); 
     const { logout } = useAuth();
 
-    // 1. 프로젝트 기본 데이터 상태 (Detail.js와 필드명 일치)
+    // Detail.js에서 넘겨준 수정 데이터 확인
+    const editData = location.state?.projectData;
+    const isEditMode = !!location.state?.isEditMode;
+
+    // 1. 프로젝트 기본 데이터 상태 (기존 로직 유지 + 수정 데이터 반영)
     const [projectData, setProjectData] = useState({
-        projectTitle: '',
-        description: '',
-        startDate: new Date().toISOString().split('T')[0], // 오늘 날짜 기본값
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 일주일 뒤 기본값
+        projectTitle: editData?.projectTitle || '',
+        description: editData?.description || '',
+        startDate: editData?.startDate || new Date().toISOString().split('T')[0],
+        endDate: editData?.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     });
 
     const [authState, setAuthState] = useState({ isAuthenticated: false, userId: null, token: null });
@@ -27,6 +32,28 @@ const Write = () => {
     const [showDropdown, setShowDropdown] = useState(false); 
     const [isCreating, setIsCreating] = useState(false);
     const dropdownRef = useRef(null);
+
+    // [데이터 복구용 useEffect] - 수정 모드일 때 멤버와 태스크를 복원
+    useEffect(() => {
+        if (isEditMode && editData) {
+            const newMap = new Map();
+            if (editData.coWorkers) {
+                editData.coWorkers.forEach(user => {
+                    newMap.set(Number(user.userId), user);
+                });
+            }
+            setSelectedMembers(newMap);
+
+            if (editData.workList) {
+                const recoveredTasks = editData.workList.map(task => ({
+                    id: task.taskId || Date.now() + Math.random(),
+                    name: task.taskName,
+                    userId: Number(task.userId)
+                }));
+                setTasks(recoveredTasks);
+            }
+        }
+    }, [isEditMode, editData]);
 
     useEffect(() => {
         const token = localStorage.getItem('jwt_token');
@@ -81,9 +108,10 @@ const Write = () => {
     };
 
     const addMember = (user) => {
-        if (!selectedMembers.has(user.userId)) {
+        const userIdNum = Number(user.userId);
+        if (!selectedMembers.has(userIdNum)) {
             const newMap = new Map(selectedMembers);
-            newMap.set(user.userId, user);
+            newMap.set(userIdNum, user);
             setSelectedMembers(newMap);
         }
         setSearchQuery('');
@@ -100,7 +128,7 @@ const Write = () => {
 
     const removeMember = (userId) => {
         const newMap = new Map(selectedMembers);
-        newMap.delete(userId);
+        newMap.delete(Number(userId));
         setSelectedMembers(newMap);
     };
 
@@ -122,7 +150,6 @@ const Write = () => {
         e.preventDefault();
         if (isCreating) return;
         
-        // 🚨 날짜 유효성 검사
         if (new Date(projectData.startDate) > new Date(projectData.endDate)) {
             return alert("종료일은 시작일보다 빠를 수 없습니다.");
         }
@@ -139,23 +166,45 @@ const Write = () => {
         };
 
         try {
-            const res = await fetch(`/api/projects/${authState.userId}`, {
+            // 수정 모드일 때는 detail API로, 생성일 때는 projects API로 전송
+            let url = isEditMode 
+                ? `http://localhost:8484/detail/${editData.projectId}` 
+                : `/api/projects/${authState.userId}`;
+
+            const res = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authState.token}` },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${authState.token}` 
+                },
                 body: JSON.stringify(payload)
             });
+
             if (res.ok) {
-                const projectId = await res.json();
-                navigate(`/detail/${projectId}`);
+                alert(isEditMode ? "수정되었습니다." : "생성되었습니다.");
+                if (isEditMode) {
+                    navigate(`/detail/${editData.projectId}`);
+                } else {
+                    const projectId = await res.json();
+                    navigate(`/detail/${projectId}`);
+                }
+            } else {
+                const errorText = await res.text();
+                alert("요청 실패: " + errorText);
             }
-        } catch (e) { alert("통신 실패"); } finally { setIsCreating(false); }
+        } catch (e) { 
+            console.error("통신 에러:", e);
+            alert("통신 실패"); 
+        } finally { 
+            setIsCreating(false); 
+        }
     };
 
     return (
         <div className="write-page-dark">
             <div className="write-container">
                 <header className="write-header">
-                    <h2>새 프로젝트 생성</h2>
+                    <h2>{isEditMode ? "프로젝트 수정" : "새 프로젝트 생성"}</h2>
                 </header>
 
                 <form className="project-form-dark" onSubmit={handleSubmit}>
@@ -165,32 +214,29 @@ const Write = () => {
                             onChange={e => setProjectData({...projectData, projectTitle: e.target.value})} />
                     </div>
 
-
                     <div className="input-section">
-                    <label>시작일</label>
-                    <input 
-                        type="date" 
-                        className="sub-input date-picker" 
-                        value={projectData.startDate}
-                        onChange={e => {
-                            setProjectData(prev => ({...prev, startDate: e.target.value}));
-                        }}
-                        onClick={(e) => e.target.showPicker && e.target.showPicker()} // 클릭 시 강제로 달력 오픈
-                    />
+                        <label>시작일</label>
+                        <input 
+                            type="date" 
+                            className="sub-input date-picker" 
+                            value={projectData.startDate}
+                            onChange={e => setProjectData(prev => ({...prev, startDate: e.target.value}))}
+                            onClick={(e) => e.target.showPicker && e.target.showPicker()} 
+                        />
                     </div>
 
                     <div className="input-section">
-                    <label>종료일</label>
-                    <input 
-                        type="date" 
-                        className="sub-input date-picker" 
-                        value={projectData.endDate}
-                        onChange={e => {
-                            console.log("종료일 변경:", e.target.value); // 콘솔 찍히는지 확인용
-                            setProjectData(prev => ({...prev, endDate: e.target.value}));
-                        }}
-                        onClick={(e) => e.target.showPicker && e.target.showPicker()} // 클릭 시 강제로 달력 오픈
-                    />
+                        <label>종료일</label>
+                        <input 
+                            type="date" 
+                            className="sub-input date-picker" 
+                            value={projectData.endDate}
+                            onChange={e => {
+                                console.log("종료일 변경:", e.target.value);
+                                setProjectData(prev => ({...prev, endDate: e.target.value}));
+                            }}
+                            onClick={(e) => e.target.showPicker && e.target.showPicker()} 
+                        />
                     </div>
 
                     <div className="input-section">
@@ -205,32 +251,23 @@ const Write = () => {
                             {tasks.map(task => (
                                 <div key={task.id} className="task-tag">
                                     <span>
-                                        <strong>[{selectedMembers.get(task.userId)?.displayName || "리더"}]</strong> {task.name}
+                                        <strong>[{selectedMembers.get(Number(task.userId))?.displayName || "리더"}]</strong> {task.name}
                                     </span>
                                     <button type="button" onClick={() => removeTask(task.id)}>×</button>
                                 </div>
                             ))}
                         </div>
                         <div className="add-task-row" style={{ display: 'flex', gap: '5px' }}>
-                            <select 
-                                className="sub-input" 
-                                style={{ flex: '0 0 120px' }}
-                                value={selectedTaskUser}
-                                onChange={(e) => setSelectedTaskUser(e.target.value)}
-                            >
+                            <select className="sub-input" style={{ flex: '0 0 120px' }} value={selectedTaskUser}
+                                onChange={(e) => setSelectedTaskUser(e.target.value)}>
                                 <option value="">본인(리더)</option>
                                 {Array.from(selectedMembers.values()).map(user => (
                                     <option key={user.userId} value={user.userId}>{user.displayName}</option>
                                 ))}
                             </select>
-                            <input 
-                                className="sub-input" 
-                                style={{ flex: 1 }}
-                                placeholder="작업 내용 입력"
-                                value={newTaskInput} 
+                            <input className="sub-input" style={{ flex: 1 }} placeholder="작업 내용 입력" value={newTaskInput} 
                                 onChange={e => setNewTaskInput(e.target.value)}
-                                onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddTask())} 
-                            />
+                                onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddTask())} />
                             <button type="button" className="add-btn" onClick={handleAddTask}>+ 추가</button>
                         </div>
                     </div>
@@ -239,18 +276,11 @@ const Write = () => {
                         <label>협업자 배정</label>
                         <div className="search-select-row" style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                             <div style={{ flex: 1, position: 'relative' }}>
-                                <input 
-                                    className="sub-input"
-                                    placeholder="이름 검색..."
-                                    value={searchQuery}
-                                    onChange={handleSearch}
-                                />
+                                <input className="sub-input" placeholder="이름 검색..." value={searchQuery} onChange={handleSearch} />
                                 {showDropdown && searchResults.length > 0 && (
                                     <ul className="search-dropdown">
                                         {searchResults.map(user => (
-                                            <li key={user.userId} onClick={() => addMember(user)}>
-                                                {user.displayName} ({user.username})
-                                            </li>
+                                            <li key={user.userId} onClick={() => addMember(user)}>{user.displayName} ({user.username})</li>
                                         ))}
                                     </ul>
                                 )}
@@ -262,7 +292,6 @@ const Write = () => {
                                 ))}
                             </select>
                         </div>
-
                         <div className="task-tag-list">
                             {Array.from(selectedMembers.values()).map(user => (
                                 <div key={user.userId} className="task-tag member-tag">
@@ -275,7 +304,7 @@ const Write = () => {
 
                     <div className="form-actions">
                         <button type="submit" className="submit-btn" disabled={isCreating}>
-                            {isCreating ? "생성 중..." : "프로젝트 생성"}
+                            {isCreating ? "처리 중..." : (isEditMode ? "수정 완료" : "프로젝트 생성")}
                         </button>
                     </div>
                 </form>
