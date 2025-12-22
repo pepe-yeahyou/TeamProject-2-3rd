@@ -87,26 +87,31 @@ function Detail() {
     }, [fetchProjectDetail, token]);
 
     const handleProgressUpdate = async (newProgress) => {
-        if (!isProjectManager) return;
-        try {
-            const updatePayload = {
-                projectTitle: project.title,
-                description: project.description,
-                startDate: project.startDate,
-                endDate: project.endDate,
-                coWorkers: project.coWorkers || [],
-                workList: project.workList || [],
-                managerName: project.managerName,
-                progress: newProgress
-            };
+    if (!isProjectManager) return;
+    try {
+        const updatePayload = {
+            projectTitle: project.title,
+            description: project.description,
+            startDate: project.startDate,
+            endDate: project.endDate,
+            coWorkers: project.coWorkers || [],
+            workList: project.workList || [],
+            managerName: project.managerName,
+            progress: newProgress,
+            // 💡 100%면 '완료', 아니면 현재 상태 유지
+            status: newProgress === 100 ? '완료' : '진행중' 
+        };
 
-            await axios.post(`${API_BASE_URL}/${projectId}`, updatePayload, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (err) {
-            console.error('진척도 업데이트 실패:', err);
-        }
-    };
+        await axios.post(`${API_BASE_URL}/${projectId}`, updatePayload, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        // 로컬 상태도 즉시 반영
+        setProject(prev => ({...prev, status: updatePayload.status}));
+    } catch (err) {
+        console.error('진척도 업데이트 실패:', err);
+    }
+};
 
     /* ✅ 수정 버튼 클릭 시 데이터를 Write.js의 필드명에 맞춰서 정확히 전달 */
     const handleEditClick = () => {
@@ -199,7 +204,7 @@ function Detail() {
     if (!project) return <div className="not-found">프로젝트를 찾을 수 없습니다.</div>;
 
     const currentProgress = project.progressPercentage || calculateProgress(project.workList || []);
-    let projectStatus = project.status || (currentProgress === 100 ? '완료' : (isExpired ? '기간만료' : '진행중'));
+    const projectStatus = currentProgress === 100 ? '완료' : (project.status || (isExpired ? '기간만료' : '진행중'));
 
     return (
         <div className="detail-page">
