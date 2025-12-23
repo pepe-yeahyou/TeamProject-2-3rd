@@ -10,16 +10,19 @@
     align-items: center;
     width: 100vw;
     height: 100vh;
+    background-color: var(--color-bg-base); /* 전체 배경 */
+    color: var(--color-text-main);
 }
 
 /* 2. 로그인/회원가입 박스 (카드) 스타일 */
 .login-box {
-    background-color: var(--color-bg-card);
-    padding: 30px 40px !important;
+    background-color: var(--color-bg-card)!important;
+    padding: 40px !important;
     border-radius: 12px;
     width: 380px;
     align-items: center; /* 자식 요소들 중앙 정렬 기반 */
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--color-border);
 }
 
 .title {
@@ -29,21 +32,24 @@
     font-size: 1.6em !important;
     font-weight: 700 !important;
     margin-bottom: 25px !important;
+    color: var(--color-text-main) !important;
 }
 
 /* 3. 입력 필드 그룹 */
 .input-group {
     width: 100%;
     margin-bottom: 8px !important; /* 칸 사이 간격 8px로 압축 */
+    color: var(--color-text-sub) !important; /* 가독성 좋은 회색 */
+    margin-top: 10px !important;
 }
 
 .input-group input {
     width: 100%;
     padding: 10px 14px !important; /* 내부 패딩도 살짝 줄임 */
-    background-color: var(--color-bg-primary);
-    border: 1px solid #334155;
+    background-color: var(--color-bg-input) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 6px;
-    color: #fff;
+    color: #fff !important;
     font-size: 14px;
     outline: none;
     transition: all 0.2s;
@@ -101,8 +107,10 @@
 }
 
 .link-group a {
-    color: #818cf8;
-    font-weight: 700;
+    color: var(--color-primary) !important; /* 포인트 컬러로 강조 */
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 8px;
 }
 
 .link-group a:hover {

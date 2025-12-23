@@ -5,11 +5,29 @@
 
 /* 1. 핵심 CSS 변수 (색상 팔레트) 정의 */
 :root {
-    --color-bg-primary: #1a1a2e;
-    --color-bg-card: #23233e;
-    --color-text-primary: #FFFFFF;
-    --color-text-secondary: #aaaaaa;
-    --color-accent-blue: #8c7ae6;
+    /* 배경 계층 */
+    --color-bg-base: #0B0E14;      
+    --color-bg-card: #161B22;      
+    --color-bg-input: #0D1117;     
+    
+    /* 포인트 컬러 */
+    --color-primary: #7C3AED;      
+    --color-primary-hover: #9333EA; 
+    --color-primary-glow: rgba(124, 58, 237, 0.3);
+
+    /* 상태 색상 (배경 투명도 조절로 고급스럽게) */
+    --status-ongoing-bg: rgba(124, 58, 237, 0.15);
+    --status-ongoing-text: #A78BFA;
+    --status-done-bg: rgba(16, 185, 129, 0.15);
+    --status-done-text: #34D399;
+    --status-expired-bg: rgba(239, 68, 68, 0.15);
+    --status-expired-text: #F87171;
+
+    /* 텍스트 및 선 */
+    --color-text-main: #F8FAFC;
+    --color-text-sub: #94A3B8;
+    --color-border: rgba(255, 255, 255, 0.12); 
+    --color-border-focus: rgba(124, 58, 237, 0.5); /* 포커스 시 보라색 테두리 */
 }
 
 * {
@@ -22,8 +40,6 @@ body {
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
     font-family: 'Pretendard', sans-serif;
-    height: 100vh;
-    width: 100vw;
 }
 
 button { font-family: inherit; }

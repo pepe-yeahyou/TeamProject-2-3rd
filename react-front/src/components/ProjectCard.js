@@ -14,8 +14,10 @@ function ProjectCard({ project }) {
         <div className="project-card" onClick={handleCardClick} style={{cursor: 'pointer'}}>
             <div className="card-header">
                 <h3 className="card-title">{title}</h3>
-                {/* 인라인 배경색 지우고 클래스만 남김 -> CSS에서 주황색 처리 */}
-                <span className="status-badge">{status}</span>
+                {/* status 값(진행중, 완료 등)을 클래스명에 포함시킵니다 */}
+                <span className={`status-badge status-${status}`}>
+                    {status}
+                </span>
             </div>
 
             <p className="description-text">{description}</p>
@@ -42,16 +44,19 @@ function ProjectCard({ project }) {
                 <span className="info-label">협업자</span>
                 <div className="avatar-group">
                     {coWorkerNames && coWorkerNames.length > 0 ? (
-                        coWorkerNames.slice(0, 3).map((name, index) => (
-                            <span key={index} className="avatar-item" title={name}>
-                                {name.charAt(0)}
-                            </span>
-                        ))
+                        <>
+                            {coWorkerNames.slice(0, 3).map((name, index) => (
+                                <span key={index} className="avatar-item" title={name}>
+                                    {name.charAt(0)}
+                                </span>
+                            ))}
+                            {coWorkerNames.length > 3 && (
+                                <span className="more-avatar-count">+{coWorkerNames.length - 3}</span>
+                            )}
+                        </>
                     ) : (
-                        <span className="info-value" style={{fontSize: '0.8em', color: '#64748b'}}>없음</span>
-                    )}
-                    {coWorkerNames && coWorkerNames.length > 3 && (
-                        <span className="more-avatar-count">+{coWorkerNames.length - 3}</span>
+                        /* ★ 클래스를 no-co-workers로 변경하여 별도 관리 */
+                        <span className="no-co-workers">없음</span>
                     )}
                 </div>
             </div>

@@ -18,8 +18,8 @@ html, body {
     /* 전체 페이지 레이아웃: 좌측 상세 내용(70%) + 우측 사이드바(30%) */
     display: flex;
     gap: 30px;
-    padding: 20px;
-    background-color: #1a1a2e; /* 다크 블루 배경 */
+    padding: 40px 10%;
+    background-color: var(--color-bg-base);
     min-height: 100vh;
     color: #f0f0f0; /* 기본 텍스트 색상 */
 }
@@ -42,10 +42,10 @@ html, body {
 
 /* 모든 카드/섹션에 적용되는 기본 스타일 */
 .detail-card {
-    background-color: #2c2c44; /* 카드 배경색 */
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 30px;
 }
 
 h2 {
@@ -165,6 +165,17 @@ h4 {
     margin-top: 10px;
 }
 
+.status-진행중, .status-완료, .status-기간만료 {
+    padding: 6px 14px;
+    border-radius: 20px; /* 라운드형으로 변경해 더 세련되게 */
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-진행중 { background: var(--status-ongoing-bg); color: var(--status-ongoing-text); }
+.status-완료 { background: var(--status-done-bg); color: var(--status-done-text); }
+.status-기간만료 { background: var(--status-expired-bg); color: var(--status-expired-text); }
+
 /* ------------------------------------- */
 /* 4. 작업 목록 (Todo list) */
 /* ------------------------------------- */
@@ -229,17 +240,19 @@ h4 {
 /* 5. 팀 정보 (우측 상단) */
 /* ------------------------------------- */
 .team-info-section .info-item {
-    background-color: #3b3b5c;
+    margin-top: 12px;
+    background-color: var(--color-bg-input);
     padding: 10px 15px;
     border-radius: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     font-size: 1rem;
+    border: 1px solid var(--color-border);
 }
 
 .team-info-section .info-item strong {
     display: block;
     font-size: 0.8rem;
-    color: #a0a0ff;
+    color: var(--color-primary);
     margin-bottom: 5px;
 }
 
@@ -251,6 +264,10 @@ h4 {
     flex-grow: 1; /* 사이드바의 남은 공간을 차지 */
     display: flex;
     flex-direction: column;
+    background-color: var(--color-bg-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
 }
 
 .chat-messages {
@@ -259,6 +276,7 @@ h4 {
     padding: 10px 0;
     border-top: 1px solid #4a4a75;
     margin-bottom: 10px;
+    background-color: var(--color-bg-input);
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -285,23 +303,39 @@ h4 {
 }
 
 .chat-bubble {
-    padding: 10px 15px;
-    border-radius: 18px;
-    max-width: 80%;
-    position: relative;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: inline-block !important; /* 내용에 맞게 크기 조절 */
+    max-width: 85% !important; 
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    word-break: break-word !important; /* 긴 단어 잘림 방지 */
+    white-space: pre-wrap !important; /* 줄바꿈 유지 */
+}
+
+.chat-bubble.me {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #6366F1 100%);
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 4px 12px var(--color-primary-glow);
+}
+
+.chat-bubble.other {
+    background-color: #21262D;
+    border: 1px solid var(--color-border);
+    border-radius: 16px 16px 16px 4px;
 }
 
 .chat-message.me .chat-bubble {
-    background-color: #6a5acd; /* 사용자 메시지 */
+    background: linear-gradient(135deg, var(--color-primary) 0%, #6366F1 100%);
     color: white;
-    border-bottom-right-radius: 4px;
+    border-radius: 20px 20px 4px 20px;
+    box-shadow: 0 4px 15px var(--color-primary-glow);
 }
 
 .chat-message.other .chat-bubble {
-    background-color: #3b3b5c; /* 상대방 메시지 */
-    color: #f0f0f0;
-    border-bottom-left-radius: 4px;
+    background-color: #21262D;
+    color: var(--color-text-main);
+    border: 1px solid var(--color-border);
+    border-radius: 20px 20px 20px 4px;
 }
 
 .chat-sender {

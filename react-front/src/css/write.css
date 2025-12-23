@@ -1,67 +1,73 @@
 /* 전체 페이지 배경 */
 .write-page-dark {
-    background-color: #1a202c; /* 다크 네이비 배경 */
+    background-color: var(--color-bg-base) !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
-    color: #e2e8f0;
-    font-family: 'Pretendard', sans-serif;
+    padding: 50px 20px;
+    color: var(--color-text-main);
 }
 
 .write-container {
     width: 100%;
-    max-width: 600px;
-    background-color: #242c3d; /* 폼 컨테이너 배경 */
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    max-width: 650px;
+    background-color: var(--color-bg-card) !important;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-border);
 }
 
 .write-header h2 {
-    font-size: 1.5rem;
-    margin-bottom: 25px;
-    color: #ffffff;
-    border-left: 4px solid #3182ce;
+    font-size: 1.6rem;
+    margin-bottom: 35px;
+    color: var(--color-text-main) !important;
+    border-left: 5px solid var(--color-primary) !important;
     padding-left: 15px;
+    font-weight: 800;
 }
 
 /* 입력 섹션 공통 */
 .input-section {
-    margin-bottom: 20px;
+    margin-bottom: 28px;
 }
 
 .input-section label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: #a0aec0;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #94a3b8; /* 차분한 회색 */
 }
 
 /* 텍스트 입력 및 textarea */
 .main-title-input, 
 .main-textarea, 
-.sub-input {
+.sub-input,
+.date-picker {
     width: 100%;
-    background-color: #1a202c;
-    border: 1px solid #3f444e;
-    border-radius: 8px;
-    padding: 12px 15px;
-    color: #fff;
+    background-color: var(--color-bg-input) !important;
+    border: 1.5px solid var(--color-border) !important;
+    color: var(--color-text-main) !important;
+    border-radius: 10px;
+    padding: 14px 18px;
     font-size: 1rem;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .main-title-input:focus, 
 .main-textarea:focus, 
-.sub-input:focus {
+.sub-input:focus,
+.date-picker:focus {
+    border-color: var(--color-primary) !important;
+    background-color: rgba(99, 102, 241, 0.05) !important; /* 포커스 시 미세한 강조 */
     outline: none;
-    border-color: #3182ce;
 }
 
 .main-textarea {
-    min-height: 120px;
-    resize: none;
+    min-height: 140px;
+    resize: vertical; /* 세로 조절만 허용 */
 }
 
 /* 해야할 것 (태그 스타일) */
@@ -76,10 +82,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #2d3748;
+    background-color: var(--color-bg-input) !important;
     padding: 10px 15px;
     border-radius: 6px;
-    border: 1px solid #4a5568;
+    border: 1px solid var(--color-border) !important;
 }
 
 .task-tag button {
@@ -98,17 +104,18 @@
 
 .add-btn {
     white-space: nowrap;
-    background-color: #2b6cb0;
+    background-color: var(--color-primary) !important;
     color: white;
     border: none;
     padding: 0 20px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    transition: background-color 0.2s;
 }
 
 .add-btn:hover {
-    background-color: #3182ce;
+    background-color: var(--color-primary-hover) !important;
 }
 
 /* 협업자 배정 그리드 */
@@ -130,8 +137,8 @@
 }
 
 .member-card.active {
-    border-color: #3182ce;
-    background-color: #2c5282;
+    border-color: var(--color-primary) !important;
+    background-color: var(--status-ongoing-bg) !important;
 }
 
 .checkbox-custom {
@@ -156,7 +163,7 @@
 .submit-btn {
     width: 100%;
     padding: 15px;
-    background-color: #3182ce;
+    background: var(--color-primary) !important;
     color: white;
     border: none;
     border-radius: 8px;
@@ -223,9 +230,9 @@
 .date-picker {
     width: 100%;
     height: 45px;
-    background-color: #1a202c !important;
-    color: #ffffff !important;
-    border: 1px solid #3f444e !important;
+    background-color: var(--color-bg-input) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text-main) !important;
     border-radius: 8px;
     padding: 0 15px;
     font-size: 0.95rem;
@@ -299,8 +306,8 @@ select.sub-input {
 
 /* 취소하기 버튼 (어두운 회색) */
 .cancel-btn {
-    background-color: #4a5568; /* 취소 느낌을 주는 차분한 색상 */
-    color: #e2e8f0;
+    background-color: #334155 !important; /* 차분한 다크 그레이 */
+    color: var(--color-text-main) !important;
 }
 
 .cancel-btn:hover {
