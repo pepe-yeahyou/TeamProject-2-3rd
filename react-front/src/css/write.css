@@ -261,3 +261,49 @@ select.sub-input {
     background-position: right 12px center;
     padding-right: 35px;
 }
+
+/* 하단 버튼 영역 그리드 설정 (반반 배치) */
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px; /* 버튼 사이 간격 */
+}
+
+/* 공통 버튼 스타일 (기존 submit-btn 스타일 계승) */
+.submit-btn, .cancel-btn {
+    flex: 1; /* 가로 길이를 똑같이 1:1로 맞춤 */
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+/* 생성/수정 완료 버튼 (파란색) */
+.submit-btn {
+    background-color: #3182ce;
+    color: white;
+}
+
+.submit-btn:hover {
+    background-color: #2b6cb0;
+}
+
+.submit-btn:disabled {
+    background-color: #4a5568;
+    cursor: not-allowed;
+}
+
+/* 취소하기 버튼 (어두운 회색) */
+.cancel-btn {
+    background-color: #4a5568; /* 취소 느낌을 주는 차분한 색상 */
+    color: #e2e8f0;
+}
+
+.cancel-btn:hover {
+    background-color: #2d3748; /* 호버 시 조금 더 어둡게 */
+    color: #ffffff;
+}

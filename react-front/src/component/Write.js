@@ -12,7 +12,7 @@ const Write = () => {
     const editData = location.state?.projectData;
     const isEditMode = !!location.state?.isEditMode;
 
-    // 1. 프로젝트 기본 데이터 상태 (기존 로직 유지 + 수정 데이터 반영)
+    // 1. 프로젝트 기본 데이터 상태
     const [projectData, setProjectData] = useState({
         projectTitle: editData?.projectTitle || '',
         description: editData?.description || '',
@@ -126,10 +126,35 @@ const Write = () => {
         e.target.value = ""; 
     };
 
+    // ✅ [수정] 업무가 할당된 멤버는 삭제 불가능하게 체크
     const removeMember = (userId) => {
+        const userIdNum = Number(userId);
+        
+        // 현재 task 리스트 중에 이 유저가 담당인 것이 있는지 확인
+        const hasAssignedTask = tasks.some(task => Number(task.userId) === userIdNum);
+
+        if (hasAssignedTask) {
+            alert("해당 협업자에게 할당된 업무가 있습니다. 업무를 먼저 삭제하거나 담당자를 변경해주세요.");
+            return;
+        }
+
         const newMap = new Map(selectedMembers);
-        newMap.delete(Number(userId));
+        newMap.delete(userIdNum);
         setSelectedMembers(newMap);
+        
+        // 만약 업무 담당자 선택 박스에 이 유저가 선택되어 있었다면 리셋
+        if (Number(selectedTaskUser) === userIdNum) {
+            setSelectedTaskUser('');
+        }
+    };
+
+    // ✅ [추가] 취소 버튼 핸들러
+    const handleCancel = () => {
+        if (isEditMode && editData?.projectId) {
+            navigate(`/detail/${editData.projectId}`);
+        } else {
+            navigate(-1);
+        }
     };
 
     const handleLogout = () => { logout(); navigate('/login'); };
@@ -156,17 +181,22 @@ const Write = () => {
         if (!projectData.projectTitle.trim()) return alert("프로젝트 제목을 입력하세요.");
 
         setIsCreating(true);
+
         const payload = {
-            projectTitle: projectData.projectTitle,
-            description: projectData.description,
-            startDate: projectData.startDate,
+            projectTitle: String(projectData.projectTitle),
+            description: String(projectData.description),
+            startDate: projectData.startDate, 
             endDate: projectData.endDate,
-            memberList: Array.from(selectedMembers.values()).map(user => ({ userId: user.userId })),
-            taskList: tasks.map(t => ({ taskName: t.name, userId: t.userId }))
+            memberList: Array.from(selectedMembers.values()).map(user => ({ 
+                userId: Number(user.userId) 
+            })),
+            taskList: tasks.map(t => ({ 
+                taskName: String(t.name), 
+                userId: Number(t.userId) 
+            }))
         };
 
         try {
-            // 수정 모드일 때는 detail API로, 생성일 때는 projects API로 전송
             let url = isEditMode 
                 ? `http://localhost:8484/detail/${editData.projectId}` 
                 : `/api/projects/${authState.userId}`;
@@ -181,22 +211,15 @@ const Write = () => {
             });
 
             if (res.ok) {
-                alert(isEditMode ? "수정되었습니다." : "생성되었습니다.");
-                if (isEditMode) {
-                    navigate(`/detail/${editData.projectId}`);
-                } else {
-                    const projectId = await res.json();
-                    navigate(`/detail/${projectId}`);
-                }
+                alert(isEditMode ? "수정 완료!" : "생성 완료!");
+                navigate(`/detail/${isEditMode ? editData.projectId : await res.json()}`);
             } else {
-                const errorText = await res.text();
-                alert("요청 실패: " + errorText);
+                alert("서버 응답 에러: " + await res.text());
             }
-        } catch (e) { 
-            console.error("통신 에러:", e);
-            alert("통신 실패"); 
-        } finally { 
-            setIsCreating(false); 
+        } catch (e) {
+            console.error("통신 장애:", e);
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -231,10 +254,7 @@ const Write = () => {
                             type="date" 
                             className="sub-input date-picker" 
                             value={projectData.endDate}
-                            onChange={e => {
-                                console.log("종료일 변경:", e.target.value);
-                                setProjectData(prev => ({...prev, endDate: e.target.value}));
-                            }}
+                            onChange={e => setProjectData(prev => ({...prev, endDate: e.target.value}))}
                             onClick={(e) => e.target.showPicker && e.target.showPicker()} 
                         />
                     </div>
@@ -302,9 +322,13 @@ const Write = () => {
                         </div>
                     </div>
 
+                    {/* ✅ [수정] 취소하기 / 수정완료 버튼 레이아웃 */}
                     <div className="form-actions">
-                        <button type="submit" className="submit-btn" disabled={isCreating}>
+                        <button type="submit" className="submit-btn" disabled={isCreating} style={{ flex: 2 }}>
                             {isCreating ? "처리 중..." : (isEditMode ? "수정 완료" : "프로젝트 생성")}
+                        </button>
+                        <button type="button" className="cancel-btn" onClick={handleCancel} style={{ flex: 2}}>
+                            취소하기
                         </button>
                     </div>
                 </form>
