@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import '../css/Detail.css';
 import { detailURL } from '../api/axios';
 
-//const detailURL = 'http://localhost:8484/detail';
+
 
 /* ✅ JWT 파싱 유틸 */
 const parseJwt = (token) => {
@@ -32,6 +32,10 @@ const calculateProgress = (workList) => {
 function Detail() {
     const { projectId } = useParams();
     const navigate = useNavigate();
+
+    const goToMain = () => {
+        navigate('/'); // 또는 설정된 메인 경로
+    };
 
     /* ✅ 실제 로그인 유저 정보 추출 (서버 DB의 유저 ID와 타입 일치 필수) */
     const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
@@ -218,6 +222,7 @@ function Detail() {
                         </h2>
                         {hasEditPermission && (
                             <div className="action-buttons">
+                                <button onClick={() => navigate('/')} className="icon-btn" title="메인으로" style={{ marginRight: '10px' }}>🏠</button>
                                 <button onClick={handleEditClick} className="icon-btn">✏️</button>
                                 <button onClick={handleDelete} className="icon-btn" style={{ marginLeft: '10px' }}>🗑️</button>
                             </div>
