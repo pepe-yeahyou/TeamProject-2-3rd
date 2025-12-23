@@ -3,8 +3,9 @@ import axios from 'axios';
 import Chat from './Chat';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../css/Detail.css';
+import { detailURL } from '../api/axios';
 
-const API_BASE_URL = 'http://localhost:8484/detail';
+//const detailURL = 'http://localhost:8484/detail';
 
 /* ✅ JWT 파싱 유틸 */
 const parseJwt = (token) => {
@@ -67,7 +68,7 @@ function Detail() {
         if (!token) return;
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/${projectId}`, {
+            const response = await axios.get(`${detailURL}/${projectId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setProject(response.data);
@@ -102,7 +103,7 @@ function Detail() {
             status: newProgress === 100 ? '완료' : '진행중' 
         };
 
-        await axios.post(`${API_BASE_URL}/${projectId}`, updatePayload, {
+        await axios.post(`${detailURL}/${projectId}`, updatePayload, {
             headers: { Authorization: `Bearer ${token}` },
         });
         
@@ -139,7 +140,7 @@ function Detail() {
         if (!window.confirm('프로젝트를 삭제하시겠습니까?')) return;
 
         try {
-            await axios.post(`${API_BASE_URL}/${projectId}?operation=DELETE`, {}, {
+            await axios.post(`${detailURL}/${projectId}?operation=DELETE`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert('프로젝트가 성공적으로 삭제되었습니다.');
@@ -166,7 +167,7 @@ function Detail() {
         try {
             // ✅ 서버 컨트롤러가 요구하는 형식: @PostMapping("/{projectId}/task/{taskId}")
             await axios.post(
-                `${API_BASE_URL}/${projectId}/task/${taskId}?isCompleted=${isCompleted}`,
+                `${detailURL}/${projectId}/task/${taskId}?isCompleted=${isCompleted}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

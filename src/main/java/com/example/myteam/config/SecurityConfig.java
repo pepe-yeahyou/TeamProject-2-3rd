@@ -48,7 +48,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 1. 보안과 무관한 공통 리소스 및 API 허용
-                        .requestMatchers("/login", "/register", "/h2-console/**", "/favicon.ico", "/api/chat/**").permitAll()
+                        //.requestMatchers("/login", "/register", "/h2-console/**", "/favicon.ico", "/api/chat/**").permitAll()
+                        .requestMatchers("/**").permitAll()
 
                         // 2. 프로젝트 관련 API (반드시 authenticated()가 적용되어야 함)
                         // antMatchers 방식처럼 더 명확하게 "/api/projects" 자체와 하위 경로를 모두 포함
@@ -79,7 +80,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("http://localhost:3000","http://172.30.1.6:3000"));
+        //config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
