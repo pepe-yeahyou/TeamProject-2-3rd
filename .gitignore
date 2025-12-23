@@ -37,3 +37,7 @@ out/
 .vscode/
 
 /react-front/node_modules/
+/react-front/App.js
+/src/main/resource/application.properties
+/src/main/java/com/example/myteam/config
+

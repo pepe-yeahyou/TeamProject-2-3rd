@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../css/write.css'; 
 import { useNavigate, useLocation } from "react-router-dom"; 
 import { useAuth } from "../context/AuthContext";
+import { detailURL } from '../api/axios';
 
 const Write = () => {
     const navigate = useNavigate();
@@ -198,7 +199,7 @@ const Write = () => {
 
         try {
             let url = isEditMode 
-                ? `http://localhost:8484/detail/${editData.projectId}` 
+                ? `${detailURL}/${editData.projectId}` 
                 : `/api/projects/${authState.userId}`;
 
             const res = await fetch(url, {

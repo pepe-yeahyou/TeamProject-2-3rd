@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+export const baseURL = 'http://172.30.1.6:8484';
+export const chatURL = `${baseURL}/api/chat`;
+export const detailURL = `${baseURL}/detail`;
+
 const api = axios.create({
-    baseURL: 'http://localhost:8484', // Spring Boot 백엔드 주소로 변경
+    //baseURL: 'http://localhost:8484', // Spring Boot 백엔드 주소로 변경
+    baseURL: baseURL, // Spring Boot 백엔드 주소로 변경
     headers: {
         'Content-Type': 'application/json',
     },
