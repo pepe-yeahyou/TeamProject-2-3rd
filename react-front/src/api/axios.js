@@ -18,4 +18,19 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        //에러 상태 코드가 401인 경우 처리
+        if (error.response && error.response.status === 401) {
+            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+
+            //토큰 삭제 및 페이지 이동
+            localStorage.removeItem('jwt_token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;

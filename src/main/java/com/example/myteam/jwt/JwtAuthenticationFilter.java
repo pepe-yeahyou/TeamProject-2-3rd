@@ -34,27 +34,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            System.out.println("JWT 존재함");
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            String username = jwtTokenProvider.getUsernameFromToken(token);
-            Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        try {
+            if (token != null && jwtTokenProvider.validateToken(token)) {
 
-            var authorities = Collections.singletonList(
-                    new SimpleGrantedAuthority("ROLE_USER")
-            );
+                String username = jwtTokenProvider.getUsernameFromToken(token);
+                Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-            CustomUserDetails userDetails =
-                    new CustomUserDetails(userId, username, authorities);
+                var authorities = Collections.singletonList( new SimpleGrantedAuthority("ROLE_USER") );
 
-            Authentication authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            authorities
-                    );
+                CustomUserDetails userDetails = new CustomUserDetails(userId, username, authorities);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, null, authorities );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                jwtTokenProvider.getUsernameFromToken(token);
+            }
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            // 토큰이 만료되었을 때 401에러를 명시적으로 보냄
+            System.out.println("토큰 만료됨을 감지!");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"message\":\"token expired\"}");
+            return;
+        } catch (Exception e) {
+            // 기타 토큰 에러 처리
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
 
         filterChain.doFilter(request, response);
