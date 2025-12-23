@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 export const baseURL = 'http://172.30.1.57:8484';
+export const mainURL = '${baseURL}/dashboard'
 export const chatURL = `${baseURL}/api/chat`;
 export const detailURL = `${baseURL}/detail`;
 
@@ -26,12 +27,21 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+
+        const isLoginRequest = error.config.url.includes('/login');
+
         //에러 상태 코드가 401인 경우 처리
         if (error.response && error.response.status === 401) {
-            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+            if (isLoginRequest) {
+                // 로그인 페이지에서 비번 틀린 경우는 인터셉터가 가로채지 않고 
+                // LoginPage.js의 catch문으로 에러를 그대로 던집니다.
+                return Promise.reject(error);
+            }
 
-            //토큰 삭제 및 페이지 이동
+            // 로그인이 아닌 다른 API 호출 중 401이 발생한 경우에만 세션 만료 처리
+            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
             localStorage.removeItem('jwt_token');
+            localStorage.removeItem('display_name');
             window.location.href = '/login';
         }
         return Promise.reject(error);

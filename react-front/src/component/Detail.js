@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import '../css/Detail.css';
 import { detailURL } from '../api/axios';
 
-//const detailURL = 'http://localhost:8484/detail';
+
 
 /* ✅ JWT 파싱 유틸 */
 const parseJwt = (token) => {
@@ -32,6 +32,10 @@ const calculateProgress = (workList) => {
 function Detail() {
     const { projectId } = useParams();
     const navigate = useNavigate();
+
+    const goToMain = () => {
+        navigate('/'); // 또는 설정된 메인 경로
+    };
 
     /* ✅ 실제 로그인 유저 정보 추출 (서버 DB의 유저 ID와 타입 일치 필수) */
     const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
@@ -218,8 +222,15 @@ function Detail() {
                         </h2>
                         {hasEditPermission && (
                             <div className="action-buttons">
-                                <button onClick={handleEditClick} className="icon-btn">✏️</button>
-                                <button onClick={handleDelete} className="icon-btn" style={{ marginLeft: '10px' }}>🗑️</button>
+                                <button onClick={() => navigate('/')} className="icon-btn" title="메인으로">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                </button>
+                                <button onClick={handleEditClick} className="icon-btn" title="수정">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                </button>
+                                <button onClick={handleDelete} className="icon-btn delete" title="삭제">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                </button>
                             </div>
                         )}
                     </div>

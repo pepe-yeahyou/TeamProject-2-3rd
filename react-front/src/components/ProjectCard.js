@@ -42,20 +42,13 @@ function ProjectCard({ project }) {
 
             <div className="co-workers-group">
                 <span className="info-label">협업자</span>
-                <div className="avatar-group">
+                <div className="co-worker-info-area">
                     {coWorkerNames && coWorkerNames.length > 0 ? (
-                        <>
-                            {coWorkerNames.slice(0, 3).map((name, index) => (
-                                <span key={index} className="avatar-item" title={name}>
-                                    {name.charAt(0)}
-                                </span>
-                            ))}
-                            {coWorkerNames.length > 3 && (
-                                <span className="more-avatar-count">+{coWorkerNames.length - 3}</span>
-                            )}
-                        </>
+                        <span className="co-worker-text">
+                            {coWorkerNames[0]} 
+                            {coWorkerNames.length > 1 && ` 외 ${coWorkerNames.length - 1}명`}
+                        </span>
                     ) : (
-                        /* ★ 클래스를 no-co-workers로 변경하여 별도 관리 */
                         <span className="no-co-workers">없음</span>
                     )}
                 </div>

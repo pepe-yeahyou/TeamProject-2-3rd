@@ -103,6 +103,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 .summary-card:hover { transform: translateY(-3px); }
@@ -117,12 +120,23 @@
 }
 
 .summary-card .card-count {
-    font-size: 2rem !important;
-    font-weight: 800;
-    margin: 0;
+    font-size: 2.2rem !important;
+    background: linear-gradient(to bottom, #ffffff, #a5b4fc); /* 숫자 그라데이션 */
+    
+    /* 1. 표준 속성 (에디터가 좋아하는 것) */
+    background-clip: text;
+    
+    /* 2. 웹킷 속성 (실제 브라우저 작동용) */
+    -webkit-background-clip: text;
+    
+    /* 3. 텍스트 컬러 투명화 */
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* 혹시 모를 대비용 */
 }
 
-.summary-card:nth-child(2) { border-top: 3px solid var(--color-primary); } /* 진행중 */
+.summary-card:nth-child(2) { 
+    background: linear-gradient(135deg, var(--color-bg-card) 0%, rgba(99, 102, 241, 0.05) 100%) !important; 
+}
 .summary-card:nth-child(3) { border-top: 3px solid var(--status-done-text); } /* 완료 */
 
 /* 7. 카드 제목 */
@@ -156,12 +170,17 @@
 
 /* 11. 프로젝트가 없을 때 메시지 컨테이너 */
 .no-project-container {
-    padding: 50px;
-    text-align: center;
-    color: var(--color-text-secondary);
-    background-color: var(--color-bg-card);
-    border-radius: 8px;
-    margin-top: 30px;
+    border: 2px dashed #334155;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s;
+}
+
+.no-project-container:hover {
+    border-color: var(--color-primary);
 }
 
 .no-project-container p {
@@ -185,6 +204,16 @@
 .project-card:hover {
     transform: translateY(-5px);
     border-color: var(--color-primary) !important;
+}
+
+.project-card:hover .project-card .card-title {
+    color: var(--color-primary) !important;
+}
+
+/* 호버 시 진척도 바에 빛나는 효과(Glow) 추가 */
+.project-card:hover .progress-bar-fill {
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+    filter: brightness(1.2);
 }
 
 /* 13. 카드 제목 및 상태 배지 영역 */
@@ -299,14 +328,25 @@
     min-height: 30px; /* 영역 높이 확보 */
 }
 
-.no-co-workers {
-    font-size: 13px !important;
-    color: #64748b !important;
-    white-space: nowrap; /* 줄바꿈 방지 */
-    overflow: visible;   /* 잘림 방지 */
-    display: inline-block;
+.co-worker-info-area {
+    flex: 1;
     text-align: right;
-    width: 100%; /* 오른쪽 끝에 붙도록 */
+    min-width: 0; /* 넘침 방지 */
+}
+
+.co-worker-text {
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: #cbd5e1 !important; /* 밝은 회색 계열 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 혹시 이름이 너무 길면 말줄임표 */
+}
+
+.no-co-workers {
+    font-size: 13.5px !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
 }
 
 /* 협업자 글씨를 기간, 담당자(info-label)와 똑같이 만듦 */
@@ -406,4 +446,41 @@
 .logout-button:active {
     transform: translateY(0);
     background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.dashboard-layout {
+    position: relative;
+    min-height: 100vh;
+    overflow-y: auto;
+    /* 조명이 삐져나가지 않게 하되, 내부는 보이게 */
+    z-index: 0; 
+}
+
+.dashboard-layout::before {
+    content: "";
+    position: fixed;
+    top: -150px;
+    right: -150px;
+    width: 600px;
+    height: 600px;
+    /* 투명도를 0.3(30%)까지 올리고 색상을 더 밝게 잡았습니다 */
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 75%);
+    /* 배경색보다는 위(z-index: -1), 컨텐츠보다는 아래 */
+    z-index: -1; 
+    pointer-events: none;
+    filter: blur(40px); /* 더 부드럽게 퍼지도록 */
+}
+
+.dashboard-layout::after {
+    content: "";
+    position: fixed;
+    bottom: -200px;
+    left: -200px;
+    width: 700px;
+    height: 700px;
+    /* 민트/블루 계열 조명 */
+    background: radial-gradient(circle, rgba(45, 212, 191, 0.2) 0%, transparent 75%);
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(50px);
 }
