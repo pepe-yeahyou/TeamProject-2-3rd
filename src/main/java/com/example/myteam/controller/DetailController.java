@@ -34,7 +34,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/detail")
-@CrossOrigin(origins = {"http://172.30.1.57:3000", "http://localhost:3000"})
+@CrossOrigin(origins = {"http://172.30.1.58:3000", "http://localhost:3000"})
 public class DetailController {
 
     private final DetailService detailService;

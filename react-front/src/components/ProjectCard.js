@@ -10,13 +10,16 @@ function ProjectCard({ project }) {
 
     const handleCardClick = () => navigate(`/detail/${projectId}`);
 
+    const isExpired = endDate && new Date(endDate) < new Date().setHours(0, 0, 0, 0);
+
+    const displayStatus = (status !== '완료' && isExpired) ? '기간만료' : status;
+
     return (
         <div className="project-card" onClick={handleCardClick} style={{cursor: 'pointer'}}>
             <div className="card-header">
                 <h3 className="card-title">{title}</h3>
-                {/* status 값(진행중, 완료 등)을 클래스명에 포함시킵니다 */}
-                <span className={`status-badge status-${status}`}>
-                    {status}
+                <span className={`status-badge status-${displayStatus}`}>
+                    {displayStatus}
                 </span>
             </div>
 

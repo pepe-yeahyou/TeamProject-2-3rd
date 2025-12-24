@@ -18,7 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/api/chat")
                 // 프론트엔드(3000번 포트)의 접근을 명시적으로 허용하여 CORS 에러를 해결합니다.
-                .setAllowedOrigins("http://172.30.1.6:3000", "http://localhost:3000")
+                .setAllowedOrigins("http://172.30.1.58:3000", "http://localhost:3000")
                 // SockJS를 사용하여 WebSocket을 지원하지 않는 브라우저에서도 통신 가능하게 합니다.
                 .withSockJS();
     }
