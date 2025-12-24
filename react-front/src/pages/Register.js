@@ -38,10 +38,10 @@ function Register() {
             // 3. 성공 처리
             setSuccess('회원가입이 완료되었습니다!');
 
-            // 3초 후 로그인 페이지로 리디렉션
+            // 2초 후 로그인 페이지로 리디렉션
             setTimeout(() => {
                 navigate('/login');
-            }, 3000);
+            }, 2000);
         } catch (err) {
             //4. 회원가입 실패 처리
             const errorMessage = err.response?.data?.message || "입력 정보를 확인해주세요.";

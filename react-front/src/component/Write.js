@@ -237,27 +237,29 @@ const Write = () => {
                         <input className="main-title-input" value={projectData.projectTitle}
                             onChange={e => setProjectData({...projectData, projectTitle: e.target.value})} />
                     </div>
+                    
+                    <div className="date-row">
+                        <div className="input-section">
+                            <label>시작일</label>
+                            <input 
+                                type="date" 
+                                className="sub-input date-picker" 
+                                value={projectData.startDate}
+                                onChange={e => setProjectData(prev => ({...prev, startDate: e.target.value}))}
+                                onClick={(e) => e.target.showPicker && e.target.showPicker()} 
+                            />
+                        </div>
 
-                    <div className="input-section">
-                        <label>시작일</label>
-                        <input 
-                            type="date" 
-                            className="sub-input date-picker" 
-                            value={projectData.startDate}
-                            onChange={e => setProjectData(prev => ({...prev, startDate: e.target.value}))}
-                            onClick={(e) => e.target.showPicker && e.target.showPicker()} 
-                        />
-                    </div>
-
-                    <div className="input-section">
-                        <label>종료일</label>
-                        <input 
-                            type="date" 
-                            className="sub-input date-picker" 
-                            value={projectData.endDate}
-                            onChange={e => setProjectData(prev => ({...prev, endDate: e.target.value}))}
-                            onClick={(e) => e.target.showPicker && e.target.showPicker()} 
-                        />
+                        <div className="input-section">
+                            <label>종료일</label>
+                            <input 
+                                type="date" 
+                                className="sub-input date-picker" 
+                                value={projectData.endDate}
+                                onChange={e => setProjectData(prev => ({...prev, endDate: e.target.value}))}
+                                onClick={(e) => e.target.showPicker && e.target.showPicker()} 
+                            />
+                        </div>
                     </div>
 
                     <div className="input-section">

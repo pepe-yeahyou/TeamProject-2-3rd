@@ -216,6 +216,7 @@ function Detail() {
             <div className="main-content">
                 <div className="detail-card title-section">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+
     <h2>
         {project.title}
         <span className={`status-${projectStatus}`}>{projectStatus}</span>
@@ -247,6 +248,7 @@ function Detail() {
         )}
     </div>
 </div>
+
                     <p style={{ marginTop: '15px' }}>{project.description}</p>
                 </div>
 

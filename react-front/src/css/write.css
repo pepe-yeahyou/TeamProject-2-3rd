@@ -1,114 +1,150 @@
 /* 전체 페이지 배경 */
 .write-page-dark {
-    background-color: #1a202c; /* 다크 네이비 배경 */
+    background-color: var(--color-bg-base) !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
-    color: #e2e8f0;
-    font-family: 'Pretendard', sans-serif;
+    padding: 50px 20px;
+    color: var(--color-text-main);
+}
+
+.write-page-dark::before {
+    content: "";
+    position: fixed;
+    top: -10%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .write-container {
     width: 100%;
-    max-width: 600px;
-    background-color: #242c3d; /* 폼 컨테이너 배경 */
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    max-width: 650px;
+    background-color: var(--color-bg-card) !important;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-border);
 }
 
 .write-header h2 {
-    font-size: 1.5rem;
-    margin-bottom: 25px;
-    color: #ffffff;
-    border-left: 4px solid #3182ce;
+    font-size: 1.6rem;
+    margin-bottom: 35px;
+    color: var(--color-text-main) !important;
+    border-left: 5px solid var(--color-primary) !important;
     padding-left: 15px;
+    font-weight: 800;
 }
 
 /* 입력 섹션 공통 */
 .input-section {
-    margin-bottom: 20px;
+    margin-bottom: 28px;
 }
 
 .input-section label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: #a0aec0;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #94a3b8; /* 차분한 회색 */
+}
+
+.input-section:focus-within label {
+    color: var(--color-primary); /* 포커스 시 라벨 색상 변경 */
+    transition: color 0.2s;
 }
 
 /* 텍스트 입력 및 textarea */
 .main-title-input, 
 .main-textarea, 
-.sub-input {
+.sub-input,
+.date-picker {
     width: 100%;
-    background-color: #1a202c;
-    border: 1px solid #3f444e;
-    border-radius: 8px;
-    padding: 12px 15px;
-    color: #fff;
+    background-color: var(--color-bg-input) !important;
+    border: 1.5px solid var(--color-border) !important;
+    color: var(--color-text-main) !important;
+    border-radius: 10px;
+    padding: 14px 18px;
     font-size: 1rem;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .main-title-input:focus, 
 .main-textarea:focus, 
-.sub-input:focus {
+.sub-input:focus,
+.date-picker:focus {
+    border-color: var(--color-primary) !important;
+    background-color: rgba(99, 102, 241, 0.05) !important; /* 포커스 시 미세한 강조 */
     outline: none;
-    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .main-textarea {
-    min-height: 120px;
-    resize: none;
+    min-height: 140px;
+    resize: vertical; /* 세로 조절만 허용 */
 }
 
 /* 해야할 것 (태그 스타일) */
 .task-tag-list {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
 .task-tag {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background-color: #2d3748;
     padding: 10px 15px;
-    border-radius: 6px;
-    border: 1px solid #4a5568;
+    border-radius: 8px;
+    border: 1px solid var(--color-border) !important;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    border-left: 3px solid var(--color-primary) !important;
+    background-color: rgba(99, 102, 241, 0.05) !important;
 }
 
 .task-tag button {
     background: none;
     border: none;
-    color: #fc8181;
-    font-size: 1.2rem;
+    color: #ef4444;
+    margin-left: 10px;
     cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+}
+
+.task-tag strong {
+    color: var(--color-primary);
+    margin-right: 5px;
 }
 
 /* 추가 버튼 행 */
 .add-task-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .add-btn {
     white-space: nowrap;
-    background-color: #2b6cb0;
+    background-color: var(--color-primary) !important;
     color: white;
     border: none;
     padding: 0 20px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    transition: background-color 0.2s;
 }
 
 .add-btn:hover {
-    background-color: #3182ce;
+    background-color: var(--color-primary-hover) !important;
 }
 
 /* 협업자 배정 그리드 */
@@ -130,8 +166,8 @@
 }
 
 .member-card.active {
-    border-color: #3182ce;
-    background-color: #2c5282;
+    border-color: var(--color-primary) !important;
+    background-color: var(--status-ongoing-bg) !important;
 }
 
 .checkbox-custom {
@@ -150,13 +186,15 @@
 
 /* 하단 생성 버튼 */
 .form-actions {
-    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    margin-top: 40px;
 }
 
 .submit-btn {
     width: 100%;
     padding: 15px;
-    background-color: #3182ce;
+    background: var(--color-primary) !important;
     color: white;
     border: none;
     border-radius: 8px;
@@ -171,20 +209,10 @@
 }
 
 .search-dropdown {
-    position: absolute;
-    top: 70px; /* input 바로 아래 위치 */
-    left: 0;
-    right: 0;
-    background-color: #2d3748;
-    border: 1px solid #4a5568;
+    background-color: #1e293b;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
-    z-index: 1000;
-    max-height: 200px;
-    overflow-y: auto;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
 .search-dropdown li {
@@ -192,10 +220,25 @@
     cursor: pointer;
     color: #e2e8f0;
     border-bottom: 1px solid #3f444e;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .search-dropdown li:hover {
     background-color: #3182ce;
+}
+
+.search-dropdown .user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
 }
 
 .user-id-text {
@@ -204,28 +247,40 @@
 }
 
 .member-tag {
-    background-color: #2c5282 !important;
+    background-color: rgba(99, 102, 241, 0.15) !important;
+    border: 1px solid rgba(99, 102, 241, 0.4) !important;
+    color: #a5b4fc;
 }
 
 /* 1. 날짜 입력 섹션 가로 배치 (Line 126 대응) */
 .period-row {
     display: flex;
-    gap: 15px; /* 시작일과 종료일 사이 간격 */
-    align-items: flex-start;
+    align-items: center;
+    gap: 15px;
+}
+
+.date-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.date-row .input-section {
+    flex: 1;
+    margin-bottom: 0; /* 줄바꿈 간격 제거 */
 }
 
 .date-input-wrapper {
     flex: 1;
-    position: relative;
 }
 
 /* 2. 날짜 선택기(Date Picker) 커스텀 스타일 */
 .date-picker {
     width: 100%;
     height: 45px;
-    background-color: #1a202c !important;
-    color: #ffffff !important;
-    border: 1px solid #3f444e !important;
+    background-color: var(--color-bg-input) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text-main) !important;
     border-radius: 8px;
     padding: 0 15px;
     font-size: 0.95rem;
@@ -284,12 +339,18 @@ select.sub-input {
 
 /* 생성/수정 완료 버튼 (파란색) */
 .submit-btn {
-    background-color: #3182ce;
+    background: linear-gradient(135deg, var(--color-primary), #4f46e5) !important;
     color: white;
+    border: none;
 }
 
 .submit-btn:hover {
     background-color: #2b6cb0;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
 }
 
 .submit-btn:disabled {
@@ -299,11 +360,27 @@ select.sub-input {
 
 /* 취소하기 버튼 (어두운 회색) */
 .cancel-btn {
-    background-color: #4a5568; /* 취소 느낌을 주는 차분한 색상 */
-    color: #e2e8f0;
+    background-color: #334155 !important;
+    border: 1px solid #475569 !important;
+    color: #f1f5f9 !important;
 }
 
 .cancel-btn:hover {
-    background-color: #2d3748; /* 호버 시 조금 더 어둡게 */
-    color: #ffffff;
+    background-color: #1e293b !important;
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+/* 협업자 배정 전체 목록(select) 드롭다운 스타일 수정 */
+select.sub-input option {
+    background-color: #1e293b !important; /* 드롭다운 배경을 어두운 색으로 고정 */
+    color: #e2e8f0 !important;            /* 글자색을 밝은 회색으로 고정 */
+    padding: 10px;
+}
+
+/* 추가로, select 박스 자체의 초기 스타일도 한번 더 점검 */
+select.sub-input {
+    background-color: var(--color-bg-input) !important;
+    color: var(--color-text-main) !important;
+    cursor: pointer;
 }
