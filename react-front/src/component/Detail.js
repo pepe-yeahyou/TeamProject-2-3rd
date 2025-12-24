@@ -216,21 +216,37 @@ function Detail() {
             <div className="main-content">
                 <div className="detail-card title-section">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <h2>
-                            {project.title}
-                            <span className={`status-${projectStatus}`}>{projectStatus}</span>
-                        </h2>
-                        {hasEditPermission && (
-                            <div className="action-buttons">
-                                <button onClick={() => navigate('/')} className="icon-btn" title="메인으로" style={{ marginRight: '10px' }}>🏠</button>
-                                <button onClick={handleEditClick} className="icon-btn">✏️</button>
-                                <button onClick={handleDelete} className="icon-btn" style={{ marginLeft: '10px' }}>🗑️</button>
-                            </div>
-                        )}
-                    </div>
-                    <div className="project-period" style={{ marginTop: '10px' }}>
-                        <h4>기간: {project.startDate} ~ {project.endDate}</h4>
-                    </div>
+    <h2>
+        {project.title}
+        <span className={`status-${projectStatus}`}>{projectStatus}</span>
+    </h2>
+    
+    {/* ✅ 여기는 모든 유저(매니저, 협업자, 일반 조회자)에게 다 보여야 함 */}
+    <div className="action-buttons">
+        <button 
+            onClick={() => navigate('/')} 
+            className="icon-btn" 
+            title="메인으로" 
+            style={{ marginRight: '10px' }}
+        >
+            🏠
+        </button>
+
+        {/* ✅ 여기부터는 '수정 권한'이 있는 매니저에게만 보임 */}
+        {hasEditPermission && (
+            <>
+                <button onClick={handleEditClick} className="icon-btn">✏️</button>
+                <button 
+                    onClick={handleDelete} 
+                    className="icon-btn" 
+                    style={{ marginLeft: '10px' }}
+                >
+                    🗑️
+                </button>
+            </>
+        )}
+    </div>
+</div>
                     <p style={{ marginTop: '15px' }}>{project.description}</p>
                 </div>
 

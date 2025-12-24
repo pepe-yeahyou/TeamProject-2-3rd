@@ -1,6 +1,9 @@
 package com.example.myteam.controller;
 
+import com.example.myteam.command.ChatVO;
+import com.example.myteam.entity.Chat;
 import com.example.myteam.jwt.JwtTokenProvider;
+import com.example.myteam.service.ChatService;
 import com.example.myteam.service.DetailService;
 import com.example.myteam.command.DetailVO; // ProjectDetailVO -> DetailVO
 import com.example.myteam.command.UpdateVO; // ProjectUpdateRequest -> UpdateVO
@@ -26,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException; // 💡 ResponseS
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -226,4 +230,35 @@ public class DetailController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "File path error.");
         }
     }*/
+
+    @RestController
+    @RequestMapping("/api/chat")
+    public class ChatController {
+
+        private final ChatService chatService;
+
+        public ChatController(ChatService chatService) {
+            this.chatService = chatService;
+        }
+
+        // 최근 10개 메시지 조회
+        @GetMapping("/{projectId}/recent")
+        public List<ChatVO> getRecentChats(@PathVariable Integer projectId) {
+            return chatService.getLastChats(projectId)
+                    .stream()
+                    .map(chat -> {
+                        ChatVO vo = new ChatVO();
+                        vo.setProjectId(chat.getProjectId());
+                        vo.setSenderId(chat.getSenderId());
+                        vo.setSenderName(chat.getSenderName());
+                        vo.setMessageContent(chat.getMessageContent());
+                        vo.setTimestamp(chat.getTimestamp());
+                        vo.setType(ChatVO.MessageType.TALK); // 기본 TALK
+                        return vo;
+                    })
+                    .toList();
+        }
+    }
+
+
 }

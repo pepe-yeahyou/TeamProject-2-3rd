@@ -4,8 +4,6 @@ import { Client } from "@stomp/stompjs"; // STOMP 클라이언트 사용
 import '../css/chat.css';
 import api, { chatURL } from '../api/axios';
 
-// 백엔드 SocketHandler가 SockJS를 처리하는 엔드포인트
-//const WS_BASE_URL = 'http://172.30.1.6:8484/api/chat';
 
 function Chat({ projectId, isChatEnabled, currentUser }) {
     
@@ -114,6 +112,25 @@ function Chat({ projectId, isChatEnabled, currentUser }) {
     // 🚨 [중복 방지 핵심] 의존성 배열에서 currentUser 정보는 뺀다. 
     // projectId나 채팅 활성화 여부가 바뀔 때만 새로 연결한다.
     }, [projectId, isChatEnabled]);
+
+    useEffect(() => {
+    if (!isChatEnabled) return;
+
+    // --- 초기 메시지 10개 가져오기 ---
+    api.get(`${chatURL}/${projectId}/recent`)
+        .then(res => {
+            // 메시지 포맷 변환
+            const initialMessages = res.data.map(msg => ({
+                ...msg,
+                message: msg.messageContent,
+                createdAt: msg.timestamp
+            }));
+            setMessageList(initialMessages);
+        })
+        .catch(err => console.error("초기 메시지 로딩 실패:", err));
+
+}, [projectId, isChatEnabled]);
+
 
 
     // --- 3. 메시지 전송 로직 ---
