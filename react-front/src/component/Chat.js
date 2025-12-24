@@ -116,20 +116,41 @@ function Chat({ projectId, isChatEnabled, currentUser }) {
     useEffect(() => {
     if (!isChatEnabled) return;
 
-    // --- 초기 메시지 10개 가져오기 ---
+    // --- 최신 10개 메시지 가져오기 ---
     api.get(`${chatURL}/${projectId}/recent`)
         .then(res => {
-            // 메시지 포맷 변환
-            const initialMessages = res.data.map(msg => ({
-                ...msg,
-                message: msg.messageContent,
-                createdAt: msg.timestamp
-            }));
-            setMessageList(initialMessages);
+            // 서버에서 내림차순으로 최신 메시지 10개 가져옴
+            // 화면에는 오래된 순으로 보여주기 위해 reverse()
+            const initialMessages = res.data
+
+          .map(msg => {
+            const kstDate = new Date(msg.timestamp);
+            kstDate.setHours(kstDate.getHours() + 9); // UTC → KST
+            return {
+                senderId: currentUser.userId,
+                displayName: currentUser.displayName,
+                message: msg.messageContent, // 실제 메시지
+                createdAt: kstDate,    // 시간
+                type: msg.type || 'TALK'     // 메시지 타입
+            };
         })
-        .catch(err => console.error("초기 메시지 로딩 실패:", err));
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // 오래된 → 최신 순
+
+
+
+
+        setMessageList(initialMessages);
+
+        // 메시지 끝으로 스크롤
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+    })
+    .catch(err => console.error("초기 메시지 로딩 실패:", err));
+
 
 }, [projectId, isChatEnabled]);
+
 
 
 
@@ -145,13 +166,16 @@ function Chat({ projectId, isChatEnabled, currentUser }) {
         cleanedInputMessage = cleanedInputMessage.replace(logPattern, '').trim();
         cleanedInputMessage = cleanedInputMessage.replace(/\[nbsp\]|&nbsp;/g, ' ').trim();
 
+        const kstDate = new Date();
+        kstDate.setHours(kstDate.getHours() + 9);
+
         const messagePayload = {
             type: 'TALK',
             projectId: projectId,
             senderId: currentUser.userId,
             displayName: currentUser.displayName,
             messageContent: cleanedInputMessage,
-            timestamp: new Date().toISOString()
+            timestamp: kstDate.toISOString()
         };
 
         // 서버로 PUBLISH (여기서 setMessageList를 직접 호출하지 않는다!)
