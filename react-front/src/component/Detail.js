@@ -290,11 +290,14 @@ function Detail() {
                 <div className="detail-card team-info-section">
                     <h3>팀 정보</h3>
                     <div className="info-item"><strong>담당자</strong> {project.managerName}</div>
-                    {(project.coWorkers || []).map(w => (
+                    {(project.coWorkers || [])
+                    .filter(worker => Number(worker.userId) !== Number(project.ownerId)) // 💡 중복 제거 필터
+                    .map(w => (
                         <div key={w.userId} className="info-item">
                             <strong>협업자</strong> {w.displayName}
                         </div>
-                    ))}
+            ))
+        }
                 </div>
 
                 {project.isChatActive !== false ? (
