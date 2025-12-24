@@ -37,7 +37,7 @@ function Chat({ projectId, isChatEnabled, currentUser }) {
             return;
         }
 
-        const token = "TEST_DUMMY_TOKEN_EXISTS"; 
+        const token = localStorage.getItem('jwt_token');
         
         // SockJS 및 STOMP 설정
         const socket = new SockJS(`${chatURL}?projectId=${projectId}&token=${token}`);
@@ -118,33 +118,30 @@ function Chat({ projectId, isChatEnabled, currentUser }) {
 
     // --- 최신 10개 메시지 가져오기 ---
     api.get(`${chatURL}/${projectId}/recent`)
-        .then(res => {
-            // 서버에서 내림차순으로 최신 메시지 10개 가져옴
-            // 화면에는 오래된 순으로 보여주기 위해 reverse()
-            const initialMessages = res.data
+    .then(res => {
+        if (!res.data || res.data.length === 0) return;
 
-          .map(msg => {
-            const kstDate = new Date(msg.timestamp);
-            kstDate.setHours(kstDate.getHours() + 9); // UTC → KST
-            return {
-                senderId: currentUser.userId,
-                displayName: currentUser.displayName,
-                message: msg.messageContent, // 실제 메시지
-                createdAt: kstDate,    // 시간
-                type: msg.type || 'TALK'     // 메시지 타입
-            };
-        })
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // 오래된 → 최신 순
+        // 1. 데이터를 먼저 가공 (이름 매핑 + 날짜 객체화)
+        const mappedData = res.data.map(msg => ({
+            ...msg,
+            senderId: msg.senderId,
+            displayName: msg.displayName || msg.senderName || "익명",
+            message: msg.messageContent,
+            createdAt: new Date(msg.timestamp),
+            type: msg.type || 'TALK'
+        }));
 
+        // 2. 🚨 [중요] 가공된 배열을 '오래된 순(1->2->3)'으로 정렬
+        // b - a가 아니라 a - b 여야 1, 2, 3 순서가 됩니다.
+        mappedData.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
+        // 3. 정렬이 완료된 'mappedData'를 상태에 넣음
+        console.log("정렬된 데이터 확인:", mappedData); // 👈 여기서 1, 2, 3 순서인지 확인!
+        setMessageList(mappedData);
 
-
-        setMessageList(initialMessages);
-
-        // 메시지 끝으로 스크롤
         setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
+        }, 150);
     })
     .catch(err => console.error("초기 메시지 로딩 실패:", err));
 
