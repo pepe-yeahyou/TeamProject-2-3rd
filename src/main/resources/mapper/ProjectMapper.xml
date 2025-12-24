@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myteam.project.ProjectMapper">
+
+    <resultMap id="ProjectSummaryResultMap" type="com.example.myteam.command.ProjectSummaryVO">
+        <id property="projectId" column="PROJECT_ID" />
+        <result property="title" column="PROJECT_TITLE" />
+        <result property="description" column="DESCRIPTION" />
+        <result property="startDate" column="START_DATE" />
+        <result property="endDate" column="END_DATE" />
+        <result property="managerName" column="MANAGER_NAME" />
+        <result property="totalTasks" column="TOTAL_TASKS" />
+        <result property="completedTasks" column="COMPLETED_TASKS" />
+    </resultMap>
+
+    <select id="findProjectsAndTaskCountsByUserId" resultMap="ProjectSummaryResultMap">
+        SELECT
+            p.PROJECT_ID,
+            p.PROJECT_TITLE,
+            p.DESCRIPTION,
+            p.START_DATE,
+            p.END_DATE,
+            -- 담당자 이름 조회 (USER.DISPLAY_NAME)
+            (SELECT u.DISPLAY_NAME FROM USER u WHERE u.USER_ID = p.OWNER_ID) AS MANAGER_NAME,
+
+            -- 총 TASK 개수
+            COUNT(t.TASK_ID) AS TOTAL_TASKS,
+            -- 완료된 TASK 개수
+            SUM(CASE WHEN t.IS_COMPLETED = 1 THEN 1 ELSE 0 END) AS COMPLETED_TASKS
+
+        FROM PROJECT p
+                 JOIN MEMBER m ON p.PROJECT_ID = m.PROJECT_ID
+                 LEFT JOIN TASK t ON p.PROJECT_ID = t.PROJECT_ID
+        WHERE m.USER_ID = #{userId}
+        GROUP BY p.PROJECT_ID, p.PROJECT_TITLE, p.DESCRIPTION, p.START_DATE, p.END_DATE, p.OWNER_ID
+    </select>
+
+    <select id="findCoWorkerNamesByProjectId" resultType="java.lang.String">
+        SELECT u.DISPLAY_NAME
+        FROM USER u
+                 JOIN MEMBER m ON u.USER_ID = m.USER_ID
+        WHERE m.PROJECT_ID = #{projectId}
+          -- 프로젝트 OWNER(담당자) 제외
+          AND m.USER_ID != (SELECT OWNER_ID FROM PROJECT WHERE PROJECT_ID = #{projectId})
+    </select>
+
+    <select id="getDashboardSummaryByUserId" resultType="com.example.myteam.command.DashboardSummaryVO">
+        SELECT
+            -- 총 프로젝트 수
+            COUNT(p.PROJECT_ID) AS totalProjects,
+
+            -- 진행 중인 프로젝트 수
+            SUM(CASE
+                -- 총 TASK가 0개 이상이고 (NULL 프로젝트 제외)
+                    WHEN (SELECT COUNT(*) FROM TASK WHERE PROJECT_ID = p.PROJECT_ID) > 0
+                        -- 완료된 TASK 수가 총 TASK 수와 같지 않은 경우
+                        AND (SELECT SUM(IS_COMPLETED) FROM TASK WHERE PROJECT_ID = p.PROJECT_ID)
+                        != (SELECT COUNT(*) FROM TASK WHERE PROJECT_ID = p.PROJECT_ID)
+                THEN 1 ELSE 0 END) AS inProgressCount,
+
+            -- 완료된 프로젝트 수
+            SUM(CASE
+                -- 총 TASK가 0개 이상이고 (NULL 프로젝트 제외)
+                    WHEN (SELECT COUNT(*) FROM TASK WHERE PROJECT_ID = p.PROJECT_ID) > 0
+                        -- 모든 TASK가 완료된 경우
+                        AND (SELECT SUM(IS_COMPLETED) FROM TASK WHERE PROJECT_ID = p.PROJECT_ID)
+                             = (SELECT COUNT(*) FROM TASK WHERE PROJECT_ID = p.PROJECT_ID)
+                        THEN 1 ELSE 0 END) AS completedCount
+
+        FROM PROJECT p
+                 JOIN MEMBER m ON p.PROJECT_ID = m.PROJECT_ID
+        WHERE m.USER_ID = #{userId}
+    </select>
+
+</mapper>

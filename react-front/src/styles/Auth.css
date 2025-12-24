@@ -1,0 +1,175 @@
+/*
+ * src/styles/Auth.css
+ * 로그인 및 회원가입 페이지 공통 스타일 (최종 확정 버전)
+ */
+
+/* 1. 컨테이너: 전체 배경을 덮고 폼을 중앙에 배치 */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-main);
+    /* 대시보드와 통일감을 주는 조명 효과 추가 */
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(45, 212, 191, 0.05), transparent 40%);
+}
+
+/* 2. 로그인/회원가입 박스 (카드) 스타일 */
+.login-box {
+    background-color: var(--color-bg-card) !important;
+    padding: 45px 40px !important;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(10px); /* 미세한 유리 효과 */
+}
+
+.title {
+    display: block;
+    width: 100%;
+    text-align: center !important;
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 35px !important;
+    letter-spacing: -1px;
+    
+    /* 텍스트 그라데이션 설정 */
+    background: linear-gradient(to bottom, #fff, #a5b4fc);
+    
+    /* 표준 속성 먼저 작성 (에디터 노란 불 방지) */
+    background-clip: text;
+    /* 브라우저 호환성을 위한 접두사 */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* 혹시 그라데이션 지원 안 하는 브라우저를 위한 대비책 */
+    color: #ffffff; 
+}
+
+/* 3. 입력 필드 그룹 */
+.auth-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* 필드 사이 간격 통일 */
+    margin-bottom: 20px;
+}
+
+.input-group {
+    width: 100%;
+    margin-bottom: 8px !important; /* 칸 사이 간격 8px로 압축 */
+    color: var(--color-text-sub) !important; /* 가독성 좋은 회색 */
+    margin-top: 10px !important;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px !important;
+    background-color: var(--color-bg-input) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 10px;
+    color: #fff !important;
+    font-size: 15px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+}
+
+.input-group input::placeholder {
+    color: #888;
+}
+
+.input-group input:focus {
+    border-color: var(--color-primary) !important;
+    background-color: rgba(99, 102, 241, 0.05) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    outline: none;
+}
+
+/* 4. 버튼 스타일 */
+.primary-button {
+    /* 1. 너비와 중앙 정렬 */
+    width: 80%;           /* 100%에서 80% 정도로 축소 */
+    display: block;       /* 중앙 정렬을 위해 블록화 */
+    margin: 20px auto 0 !important; /* 위쪽 여백 20px, 좌우 auto로 중앙 정렬 */
+    
+    /* 2. 높이 및 내부 여백 */
+    padding: 12px !important; /* 15px에서 12px로 살짝 줄임 */
+    
+    /* 3. 디자인 포인트 */
+    background: linear-gradient(135deg, var(--color-primary), #4f46e5) !important;
+    color: white;
+    border: none;
+    border-radius: 18px;   /* 완전히 둥근 캡슐 모양으로 변경 (더 세련됨) */
+    font-weight: 700;
+    font-size: 15px;      /* 16px에서 15px로 미세 조정 */
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.primary-button:hover {
+    transform: translateY(-2px) scale(1.02); /* 살짝 커지면서 위로 뜨는 효과 */
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+}
+
+.primary-button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* 5. 하단 링크 그룹 (줄바꿈 및 간격 오류 최종 수정) */
+.link-group {
+    margin-top: 25px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.link-group a {
+    color: var(--color-primary) !important;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.link-group a:hover {
+    color: #a5b4fc !important;
+    text-decoration: underline;
+}
+
+/* 6. 성공/오류 메시지 스타일 */
+.error-message {
+    padding: 12px !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    color: #f87171 !important;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 15px !important;
+}
+
+/* 흔들림 애니메이션 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.success-message {
+    padding: 12px !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    color: #34d399 !important;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 15px !important;
+}

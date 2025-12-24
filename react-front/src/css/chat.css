@@ -1,0 +1,66 @@
+/* 1. 메시지 전체 행 */
+.chat-message {
+    display: flex !important;
+    width: 100% !important;
+    margin-bottom: 15px;
+    /* 부모가 자식을 좁게 만들지 못하게 방어 */
+    flex-shrink: 0; 
+}
+
+.chat-message.me { justify-content: flex-end; }
+.chat-message.other { justify-content: flex-start; }
+
+/* 2. 버블 컨테이너 */
+.chat-bubble-container {
+    display: flex !important;
+    flex-direction: column;
+    /* 가로 공간을 충분히 확보 (최대 85%까지 옆으로 길어짐) */
+    max-width: 85% !important; 
+    /* 중요: 컨테이너 자체가 flex 안에서 줄어들지 않게 함 */
+    flex-shrink: 0; 
+}
+
+.chat-message.me .chat-bubble {
+    background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+    border-radius: 18px 18px 4px 18px;
+}
+
+.chat-message.other .chat-bubble {
+    background-color: #21262D;
+    border-radius: 18px 18px 18px 4px;
+}
+
+.chat-message.me .chat-bubble-container { align-items: flex-end; }
+.chat-message.other .chat-bubble-container { align-items: flex-start; }
+
+/* 3. 실제 말풍선 (가장 중요) */
+.chat-bubble {
+    /* 텍스트 길이에 맞춰서 옆으로 쭉 늘어나게 함 */
+    display: block !important;
+    width: fit-content !important;
+    /* 텍스트가 짧을 때 부모가 억지로 줄이는 것 방지 */
+    min-width: max-content !important; 
+    
+    /* 6글자에서 줄바꿈되는 주범 방지 */
+    white-space: pre-wrap !important; 
+    /* 단어 단위가 아니라 글자 단위로 꽉 찼을 때만 줄바꿈 */
+    word-break: break-all !important; 
+    
+    padding: 10px 15px;
+    border-radius: 12px;
+    background-color: #6358DC;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 4. 메시지 리스트 박스 */
+.chat-messages {
+    display: flex !important;
+    flex-direction: column;
+    width: 100% !important;
+    /* 내부 여백 때문에 압축될 수 있으므로 확인 */
+    padding: 20px !important; 
+    box-sizing: border-box;
+    overflow-y: auto;
+}
