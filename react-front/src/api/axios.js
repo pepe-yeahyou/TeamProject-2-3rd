@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const baseURL = 'http://172.30.1.57:8484';
+export const baseURL = 'http://localhost:8484';
 export const mainURL = '${baseURL}/dashboard'
 export const chatURL = `${baseURL}/api/chat`;
 export const detailURL = `${baseURL}/detail`;
